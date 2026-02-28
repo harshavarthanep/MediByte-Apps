@@ -3,31 +3,67 @@
  * Utility functions for managing users and admins in localStorage.
  */
 
-// Initialize storage if it doesn't exist
-if (!localStorage.getItem('users')) {
-    localStorage.setItem('users', JSON.stringify([]));
-}
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-if (!localStorage.getItem('admins')) {
-    // Default admin for testing if needed, or start empty. Let's start empty.
-    localStorage.setItem('admins', JSON.stringify([]));
-}
+// 1. ADD YOUR FIREBASE CONFIGURATION HERE (Get this from Firebase Console)
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
 
-if (!localStorage.getItem('resetRequests')) {
-    localStorage.setItem('resetRequests', JSON.stringify([]));
-}
+// Initialize Firebase & Firestore securely
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-if (!localStorage.getItem('auditNotifications')) {
-    localStorage.setItem('auditNotifications', JSON.stringify([]));
-}
+// Secure Online Sync Layer: Syncs Firebase data to localStorage
+const syncWithFirebase = async () => {
+  const collections = ['users', 'admins', 'resetRequests', 'auditNotifications', 'messages', 'chatGroups', 'clients', 'projects'];
+  
+  collections.forEach(collectionName => {
+    // Listen for real-time secure updates from Firebase
+    onSnapshot(doc(db, "medibyteData", collectionName), (docSnapshot) => {
+      if (docSnapshot.exists()) {
+        localStorage.setItem(collectionName, JSON.stringify(docSnapshot.data().items || []));
+      }
+    });
+  });
+};
 
-if (!localStorage.getItem('messages')) {
-    localStorage.setItem('messages', JSON.stringify([]));
-}
+// Start synchronization
+syncWithFirebase();
 
-if (!localStorage.getItem('chatGroups')) {
-    localStorage.setItem('chatGroups', JSON.stringify([]));
-}
+// Override localStorage.setItem to also push to Firebase (Keeping your other code unmodified)
+const originalSetItem = localStorage.setItem;
+localStorage.setItem = function(key, value) {
+  // Save locally for immediate UI response (synchronous)
+  originalSetItem.apply(this, arguments);
+  
+  // Save to Secure Firebase Database online (asynchronous)
+  const allowedKeys = ['users', 'admins', 'resetRequests', 'auditNotifications', 'messages', 'chatGroups', 'clients', 'projects'];
+  if (allowedKeys.includes(key)) {
+    try {
+      const parsedData = JSON.parse(value);
+      setDoc(doc(db, "medibyteData", key), { items: parsedData }, { merge: true });
+    } catch (e) {
+      console.error("Firebase Sync Error for confidential data: ", e);
+    }
+  }
+};
+
+// Ensure default storage exists if Firebase hasn't loaded yet
+if (!localStorage.getItem('users')) localStorage.setItem('users', JSON.stringify([]));
+if (!localStorage.getItem('admins')) localStorage.setItem('admins', JSON.stringify([]));
+if (!localStorage.getItem('resetRequests')) localStorage.setItem('resetRequests', JSON.stringify([]));
+if (!localStorage.getItem('auditNotifications')) localStorage.setItem('auditNotifications', JSON.stringify([]));
+if (!localStorage.getItem('messages')) localStorage.setItem('messages', JSON.stringify([]));
+if (!localStorage.getItem('chatGroups')) localStorage.setItem('chatGroups', JSON.stringify([]));
+
+// The rest of your Auth object remains EXACTLY the same below this line
 
 const Auth = {
     // ---- USERS ----
@@ -488,3 +524,4 @@ const Auth = {
         ];
     }
 };
+
