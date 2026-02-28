@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIBYTE TECH - Main</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Navigation Bar -->
+        <nav class="app-navbar" style="align-items: flex-start;">
+            <div class="brand-group">
+                <div class="brand">MEDIBYTE TECH</div>
+                <div style="margin-top: 8px;">
+                    <a href="hcc.html"
+                        style="color: var(--text-secondary); text-decoration: none; font-weight: 500; font-size: 0.95rem; margin-right: 15px; transition: color 0.3s;">HCC</a>
+                    <a href="#"
+                        style="color: var(--text-secondary); text-decoration: none; font-weight: 500; font-size: 0.95rem; transition: color 0.3s;">IT
+                        Service</a>
+                </div>
+            </div>
+            <div class="nav-links"
+                style="margin-top: 5px; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                <div style="display: flex; align-items: center;">
+                    <a href="messages.html" class="message-icon" title="Messages"
+                        style="color: var(--text-primary); text-decoration: none; display: flex; align-items: center; position: relative; margin-right: 15px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                        </svg>
+                    </a>
+                    <span style="margin-right: 20px;" id="welcomeText">Welcome, User</span>
+                    <button id="logoutBtn" class="btn-logout">Logout</button>
+                </div>
+                <button id="profileBtn" class="btn-logout"
+                    style="font-size: 0.8rem; padding: 4px 10px;">Profile</button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="app-content">
+
+            <div class="dashboard-card" style="margin-bottom: 20px;">
+                <h2>My Metrics</h2>
+                <div
+                    style="font-size: 1.15rem; margin-top: 10px; color: var(--text-primary); display: flex; flex-direction: column; gap: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <span style="font-size: 1rem; color: var(--text-secondary);">Completed Charts</span>
+                        <strong id="userCompletedChartsCount"
+                            style="color: #10b981; font-size: 2rem; line-height: 1;">0</strong>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <span style="font-size: 1rem; color: var(--text-secondary);">Quality</span>
+                        <strong id="userQuality" style="font-size: 2rem; line-height: 1;">0%</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Details Section (Hidden by default) -->
+            <div id="profileSection" class="dashboard-card" style="display: none; margin-top: 20px;">
+                <h2>User Profile Details</h2>
+                <div id="profileDetails"
+                    style="margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px; color: var(--text-primary);">
+                    <!-- Populated by JS -->
+                </div>
+
+                <!-- Edit Profile Form (Hidden initially) -->
+                <div id="editProfileFormContainer"
+                    style="display: none; margin-top: 20px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #0f172a;">Edit Your Details</h3>
+                    <div id="profileMessage" class="message"></div>
+                    <form id="editProfileForm">
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label for="profFullName">Full Name</label>
+                            <input type="text" id="profFullName" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label for="profEmail">Email</label>
+                            <input type="email" id="profEmail" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label for="profDob">Date of Birth</label>
+                            <input type="date" id="profDob" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label for="profDoj">Date of Joining</label>
+                            <input type="date" id="profDoj" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 10px;">
+                            <label for="profReportingTo">Reporting To</label>
+                            <input type="text" id="profReportingTo" required>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="profPassword">Password</label>
+                            <input type="text" id="profPassword" required>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="submit" class="btn" style="flex: 1;">Save Changes</button>
+                            <button type="button" id="cancelEditBtn" class="btn"
+                                style="flex: 1; background-color: #64748b; border: none;">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script>
+        // Check if a user is logged in, else kick them back to index.html
+        Auth.checkAuth('user');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentUser = sessionStorage.getItem('currentUser');
+            if (currentUser) {
+                document.getElementById('welcomeText').textContent = `Welcome, ${currentUser}`;
+
+                // Calculate completed charts
+                const logs = Auth.getEntryLogs();
+                const userLogs = logs.filter(log => log.userId === currentUser);
+                const countElement = document.getElementById('userCompletedChartsCount');
+                if (countElement) {
+                    countElement.textContent = userLogs.length;
+                }
+
+                // Calculate Quality
+                const auditedLogs = userLogs.filter(log => log.auditStatus === 'Audited');
+                let totalIcdSum = 0;
+                let totalErrorsCount = 0;
+
+                auditedLogs.forEach(log => {
+                    const icd = parseInt(log.totalIcd) || 0;
+                    totalIcdSum += icd;
+                    if (log.hasErrors === true || log.hasErrors === 'true') {
+                        totalErrorsCount++;
+                    }
+                });
+
+                let qualityPercentage = 100;
+                if (totalIcdSum > 0) {
+                    qualityPercentage = 100 - ((totalErrorsCount / totalIcdSum) * 100);
+                } else if (totalErrorsCount > 0 && totalIcdSum === 0) {
+                    qualityPercentage = 0;
+                }
+                qualityPercentage = parseFloat(qualityPercentage.toFixed(2));
+
+                const qualityElement = document.getElementById('userQuality');
+                if (qualityElement) {
+                    qualityElement.textContent = qualityPercentage + '%';
+                    if (qualityPercentage >= 98) {
+                        qualityElement.style.color = '#10b981'; // Green
+                    } else if (qualityPercentage >= 95) {
+                        qualityElement.style.color = '#eab308'; // Yellow
+                    } else {
+                        qualityElement.style.color = '#ef4444'; // Red
+                    }
+                }
+            }
+
+            // Handle Logout
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                Auth.logout();
+            });
+
+            // Message Badge Logic
+            const updateMessageBadge = () => {
+                let currentU = sessionStorage.getItem('currentUser');
+                if (!currentU) return;
+                const msgIcon = document.querySelector('.message-icon');
+                if (msgIcon && Auth.getUnreadMessageCount) {
+                    const unreadCount = Auth.getUnreadMessageCount(currentU);
+                    let badge = document.getElementById('msgBadge');
+                    if (unreadCount > 0) {
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.id = 'msgBadge';
+                            badge.style.position = 'absolute';
+                            badge.style.top = '-5px';
+                            badge.style.right = '-5px';
+                            badge.style.backgroundColor = '#ef4444';
+                            badge.style.color = 'white';
+                            badge.style.borderRadius = '50%';
+                            badge.style.padding = '2px 6px';
+                            badge.style.fontSize = '0.7rem';
+                            badge.style.fontWeight = 'bold';
+                            msgIcon.appendChild(badge);
+                        }
+                        badge.textContent = unreadCount;
+                        badge.style.display = 'block';
+                    } else if (badge) {
+                        badge.style.display = 'none';
+                    }
+                }
+            };
+            updateMessageBadge();
+            setInterval(updateMessageBadge, 5000);
+
+            // Handle Profile
+            const profileBtn = document.getElementById('profileBtn');
+            const profileSection = document.getElementById('profileSection');
+            const editProfileFormContainer = document.getElementById('editProfileFormContainer');
+            const editProfileForm = document.getElementById('editProfileForm');
+            const cancelEditBtn = document.getElementById('cancelEditBtn');
+
+            // Function to render profile view
+            const renderProfileView = (user) => {
+                profileDetails.innerHTML = `
+                    <div><strong>User ID:</strong> <span style="color: var(--text-secondary);">${user.userId}</span></div>
+                    <div><strong>Full Name:</strong> <span style="color: var(--text-secondary);">${user.fullname || 'N/A'}</span></div>
+                    <div><strong>Email:</strong> <span style="color: var(--text-secondary);">${user.email || 'N/A'}</span></div>
+                    <div><strong>Date of Birth:</strong> <span style="color: var(--text-secondary);">${user.dob || 'N/A'}</span></div>
+                    <div><strong>Date of Joining:</strong> <span style="color: var(--text-secondary);">${user.doj || 'N/A'}</span></div>
+                    <div><strong>Reporting To:</strong> <span style="color: var(--text-secondary);">${user.reportingTo || 'N/A'}</span></div>
+                    <div style="grid-column: 1 / -1; margin-top: 15px;">
+                        <button id="showEditProfileBtn" class="btn" style="padding: 6px 15px; font-size: 0.85rem;">Edit Profile</button>
+                    </div>
+                `;
+
+                // Attach listener to newly created edit button
+                document.getElementById('showEditProfileBtn').addEventListener('click', () => {
+                    profileDetails.style.display = 'none';
+                    editProfileFormContainer.style.display = 'block';
+
+                    // Pre-fill form
+                    document.getElementById('profFullName').value = user.fullname || '';
+                    document.getElementById('profEmail').value = user.email || '';
+                    document.getElementById('profDob').value = user.dob || '';
+                    document.getElementById('profDoj').value = user.doj || '';
+                    document.getElementById('profReportingTo').value = user.reportingTo || '';
+                    document.getElementById('profPassword').value = user.password || '';
+                });
+            };
+
+            cancelEditBtn.addEventListener('click', () => {
+                editProfileFormContainer.style.display = 'none';
+                profileDetails.style.display = 'grid';
+            });
+
+            profileBtn.addEventListener('click', () => {
+                // Toggle visibility
+                if (profileSection.style.display === 'none') {
+                    profileSection.style.display = 'block';
+                    profileDetails.style.display = 'grid';
+                    editProfileFormContainer.style.display = 'none';
+
+                    // Fetch user details
+                    const users = Auth.getUsers();
+                    const user = users.find(u => u.userId === currentUser);
+
+                    if (user) {
+                        renderProfileView(user);
+                    }
+                } else {
+                    profileSection.style.display = 'none';
+                }
+            });
+
+            // Handle Profile Update Submission
+            editProfileForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const updatedData = {
+                    fullname: document.getElementById('profFullName').value.trim(),
+                    email: document.getElementById('profEmail').value.trim(),
+                    dob: document.getElementById('profDob').value,
+                    doj: document.getElementById('profDoj').value,
+                    reportingTo: document.getElementById('profReportingTo').value.trim(),
+                    password: document.getElementById('profPassword').value.trim()
+                };
+
+                if (!updatedData.fullname || !updatedData.email || !updatedData.dob || !updatedData.doj || !updatedData.reportingTo || !updatedData.password) {
+                    Auth.showMessage('profileMessage', 'Please fill in all fields.', 'error');
+                    return;
+                }
+
+                const response = Auth.updateUser(currentUser, updatedData);
+                if (response.success) {
+                    Auth.showMessage('profileMessage', 'Profile updated successfully!', 'success');
+
+                    // Refresh current user data memory
+                    const users = Auth.getUsers();
+                    const user = users.find(u => u.userId === currentUser);
+
+                    setTimeout(() => {
+                        editProfileFormContainer.style.display = 'none';
+                        profileDetails.style.display = 'grid';
+                        if (user) renderProfileView(user);
+                    }, 1000);
+                } else {
+                    Auth.showMessage('profileMessage', response.message, 'error');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

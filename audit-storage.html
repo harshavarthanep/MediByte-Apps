@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIBYTE TECH - Audit Storage</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .filter-bar {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-bar input,
+        .filter-bar select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .data-table-container {
+            background: white;
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #444;
+            white-space: nowrap;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table tr:hover {
+            background-color: #f9fafb;
+        }
+
+        .badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-clean {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+
+        .export-btn {
+            background-color: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+
+        .export-btn:hover {
+            background-color: #1d4ed8;
+        }
+
+        .user-block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-block span:first-child {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .user-block span:last-child {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Navigation Bar -->
+        <nav class="app-navbar">
+            <div class="brand brand-contrast"><a href="admin.html"
+                    style="color: inherit; text-decoration: none;">MEDIBYTE TECH</a></div>
+            <div class="nav-links">
+                <span style="margin-right: 20px; color: white;" id="welcomeText">Admin</span>
+                <a href="storage.html"
+                    style="color: #38bdf8; text-decoration: none; margin-right: 15px; font-size: 0.9rem;">Storage</a>
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="app-content">
+
+            <div class="page-header">
+                <h2>Audit Storage</h2>
+                <button class="export-btn" id="exportBtn">Export to CSV</button>
+            </div>
+
+            <div class="filter-bar">
+                <input type="text" id="searchChartId" placeholder="Search Chart ID...">
+                <select id="filterProject">
+                    <option value="">All Projects</option>
+                </select>
+                <select id="filterErrors">
+                    <option value="">All Audits</option>
+                    <option value="yes">With Errors</option>
+                    <option value="no">Clean / No Errors</option>
+                </select>
+            </div>
+
+            <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>User Details</th>
+                            <th>Chart ID</th>
+                            <th>Project</th>
+                            <th>Sub Project</th>
+                            <th>Audit Date</th>
+                            <th>Status / Errors?</th>
+                            <th>Error Details</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="storageTableBody">
+                        <!-- Rows injected via JS -->
+                    </tbody>
+                </table>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script>
+        Auth.checkAuth('admin');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentAdmin = sessionStorage.getItem('currentAdmin');
+            if (currentAdmin) {
+                document.getElementById('welcomeText').textContent = `Admin: ${currentAdmin}`;
+            }
+
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                Auth.logout();
+            });
+
+            // Populate project filter
+            const projects = Auth.getProjects();
+            const projectSelect = document.getElementById('filterProject');
+            projects.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p;
+                opt.textContent = p;
+                projectSelect.appendChild(opt);
+            });
+
+            const tableBody = document.getElementById('storageTableBody');
+            const searchChartId = document.getElementById('searchChartId');
+            const filterProject = document.getElementById('filterProject');
+            const filterErrors = document.getElementById('filterErrors');
+
+            // Gather only Audited logs
+            const allLogs = Auth.getEntryLogs();
+            const auditedLogs = allLogs.filter(log => log.auditStatus === 'Audited');
+
+            function renderTable() {
+                const term = searchChartId.value.toLowerCase();
+                const proj = filterProject.value;
+                const errFilter = filterErrors.value;
+
+                tableBody.innerHTML = '';
+
+                let filtered = auditedLogs.filter(log => {
+                    const matchesChart = log.chartId && log.chartId.toLowerCase().includes(term);
+                    const matchesProj = proj === '' || log.projectName === proj;
+
+                    let matchesErr = true;
+                    if (errFilter === 'yes') matchesErr = (log.hasErrors === true || log.hasErrors === 'true');
+                    if (errFilter === 'no') matchesErr = (log.hasErrors === false || log.hasErrors === 'false');
+
+                    return matchesChart && matchesProj && matchesErr;
+                });
+
+                if (filtered.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 20px; color: #666;">No audit records found.</td></tr>`;
+                    return;
+                }
+
+                // Sort by audit date descending (newest first)
+                filtered.sort((a, b) => new Date(b.auditTimestamp) - new Date(a.auditTimestamp));
+
+                filtered.forEach(log => {
+                    const tr = document.createElement('tr');
+
+                    const auditDateStr = log.auditTimestamp ? new Date(log.auditTimestamp).toLocaleString() : 'N/A';
+
+                    const hasErrors = log.hasErrors === true || log.hasErrors === 'true';
+                    const errorBadge = hasErrors
+                        ? `<span class="badge badge-error">Errors Found</span>`
+                        : `<span class="badge badge-clean">Clean</span>`;
+
+                    let errorText = '-';
+                    if (hasErrors && log.errorDetails) {
+                        const d = log.errorDetails;
+                        // Build string out of existing comments plus base fields
+                        errorText = `
+                            <strong>Type:</strong> ${d.type || 'N/A'}<br>
+                            <strong>Pages:</strong> ${d.pages || 'N/A'}<br>
+                            <strong>Cat:</strong> ${d.category || 'N/A'} - ${d.subCategory || 'N/A'}<br>
+                            <strong>Comment:</strong> ${d.comment || 'N/A'}
+                        `;
+                    }
+
+                    tr.innerHTML = `
+                        <td>
+                            <div class="user-block">
+                                <span>${log.userName || log.userId || 'Unknown'}</span>
+                                <span>ID: ${log.userId || 'N/A'}</span>
+                            </div>
+                        </td>
+                        <td style="font-weight: 500; color: black;">${log.chartId || 'N/A'}</td>
+                        <td style="color: black;">${log.projectName || 'N/A'}</td>
+                        <td style="color: black;">${log.subProjectName || 'N/A'}</td>
+                        <td style="color: black;">${auditDateStr}</td>
+                        <td>${errorBadge}</td>
+                        <td style="font-size: 0.85rem; color: #555;">${errorText}</td>
+                        <td>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn-edit" data-id="${log.chartId}" style="background-color: #f59e0b; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Edit</button>
+                                <button class="btn-delete" data-id="${log.chartId}" style="background-color: #ef4444; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">Delete</button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            }
+
+            searchChartId.addEventListener('input', renderTable);
+            filterProject.addEventListener('change', renderTable);
+            filterErrors.addEventListener('change', renderTable);
+
+            // Bind Event Listeners for Edit / Delete Buttons
+            tableBody.addEventListener('click', (e) => {
+                const target = e.target;
+                const chartId = target.getAttribute('data-id');
+
+                if (!chartId) return;
+
+                if (target.classList.contains('btn-delete')) {
+                    if (confirm(`Are you sure you want to permanently delete Chart ID: ${chartId} and its audit record?`)) {
+                        const res = Auth.deleteEntryLog(chartId);
+                        if (res.success) {
+                            location.reload();
+                        } else {
+                            alert(res.message);
+                        }
+                    }
+                } else if (target.classList.contains('btn-edit')) {
+                    const logToEdit = auditedLogs.find(l => l.chartId === chartId);
+                    if (!logToEdit) return;
+
+                    const newChartId = prompt("Edit Chart ID:", logToEdit.chartId);
+                    if (newChartId === null) return;
+
+                    // In Audit Storage, let's also allow editing error status as an example of strong admin config:
+                    const newHasErrorsStr = prompt("Set Error Status (true/false):", logToEdit.hasErrors);
+                    if (newHasErrorsStr === null) return;
+
+                    const newHasErrors = newHasErrorsStr.toLowerCase() === 'true';
+
+                    if (newChartId.trim() !== '' && newChartId.trim() !== logToEdit.chartId) {
+                        logToEdit.chartId = newChartId.trim();
+                        logToEdit.hasErrors = newHasErrors;
+                        Auth.deleteEntryLog(chartId);
+                        Auth.addEntryLog(logToEdit);
+                        alert('Audit record updated successfully!');
+                        location.reload();
+                    } else {
+                        const updates = {
+                            hasErrors: newHasErrors
+                        };
+                        const res = Auth.updateEntryLog(chartId, updates);
+                        if (res.success) {
+                            alert('Audit record updated successfully!');
+                            location.reload();
+                        }
+                    }
+                }
+            });
+
+            // Initial render
+            renderTable();
+
+            // Minimal Export to CSV
+            document.getElementById('exportBtn').addEventListener('click', () => {
+                if (auditedLogs.length === 0) {
+                    alert('No audit data to export.');
+                    return;
+                }
+
+                const headers = ['User Name', 'User ID', 'Chart ID', 'Project', 'Sub Project', 'Audit Date', 'Has Errors', 'Error Type', 'Error Pages', 'Error Category', 'Error Sub Category', 'Error Comment'];
+                const rows = auditedLogs.map(log => {
+                    const ed = log.errorDetails || {};
+                    return [
+                        `"${log.userName || log.userId || ''}"`,
+                        `"${log.userId || ''}"`,
+                        `"${log.chartId || ''}"`,
+                        `"${log.projectName || ''}"`,
+                        `"${log.subProjectName || ''}"`,
+                        `"${log.auditTimestamp || ''}"`,
+                        `"${log.hasErrors ? 'Yes' : 'No'}"`,
+                        `"${ed.type || ''}"`,
+                        `"${ed.pages || ''}"`,
+                        `"${ed.category || ''}"`,
+                        `"${ed.subCategory || ''}"`,
+                        `"${ed.comment || ''}"`
+                    ].join(',');
+                });
+
+                const csvContent = "data:text/csv;charset=utf-8," + headers.join(',') + "\n" + rows.join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "audit_storage_export.csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
+        });
+    </script>
+</body>
+
+</html>

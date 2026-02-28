@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIBYTE TECH - Admin Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-nav {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+        }
+
+        .btn-link {
+            text-decoration: none;
+            display: inline-block;
+            width: auto;
+            min-width: 150px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Navigation Bar -->
+        <nav class="app-navbar">
+            <div class="brand brand-contrast">MEDIBYTE TECH</div>
+            <div class="nav-links" style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <a href="admin-notifications.html" class="notification-icon" title="Notifications"
+                        style="color: var(--text-primary); text-decoration: none; display: flex; align-items: center; position: relative;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </a>
+                    <a href="messages.html" class="message-icon" title="Messages"
+                        style="color: var(--text-primary); text-decoration: none; display: flex; align-items: center; position: relative; margin-left: 10px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+                        </svg>
+                    </a>
+                    <span id="welcomeText">Welcome, Admin</span>
+                    <button id="logoutBtn" class="btn-logout">Logout</button>
+                </div>
+                <div>
+                    <a href="quality-report.html"
+                        style="color: #4ade80; text-decoration: none; font-size: 0.9rem; margin-right: 15px; font-weight: 600;">Quality
+                        Report</a>
+                    <a href="audit-storage.html"
+                        style="color: #facc15; text-decoration: none; font-size: 0.9rem; margin-right: 15px; font-weight: 600;">Audit
+                        Storage</a>
+                    <a href="storage.html"
+                        style="color: #38bdf8; text-decoration: none; font-size: 0.9rem; margin-right: 5px;">Storage</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="app-content">
+            <div class="dashboard-card">
+                <h2>Admin Control Center</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    Welcome to the administrative portal. Manage the application and users here.
+                </p>
+
+                <div class="admin-nav" style="flex-direction: column;">
+                    <a href="user-log.html" class="btn btn-link">User Log</a>
+                    <a href="clients-login.html" class="btn btn-link">Clients Login details</a>
+                    <a href="project-name.html" class="btn btn-link">Project Name</a>
+                    <a href="sub-project.html" class="btn btn-link">Sub Project Name</a>
+                    <div style="display: flex; gap: 15px; margin-top: 10px;">
+                        <button id="exportDataBtn" class="btn btn-link"
+                            style="background-color: #10b981; color: white;">Export All Data</button>
+                        <button id="importDataBtn" class="btn btn-link"
+                            style="background-color: #f59e0b; color: white;">Import Data</button>
+                        <input type="file" id="importFileInput" accept=".json" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card" style="margin-top: 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                    <h2 style="margin-bottom: 0;">Admin User Details</h2>
+                    <button id="toggleAdminsBtn"
+                        style="background: none; border: none; cursor: pointer; color: var(--text-secondary);">
+                        <!-- Eye Icon SVG (Open Eye) -->
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            class="lucide lucide-eye">
+                            <path
+                                d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </button>
+                </div>
+                <!-- Initially Hidden -->
+                <div id="adminUserList" style="margin-top: 15px; display: none; flex-direction: column; gap: 10px;">
+                    <!-- Admins will be injected here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script>
+        // Check if an admin is logged in
+        Auth.checkAuth('admin');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentAdmin = sessionStorage.getItem('currentAdmin');
+            if (currentAdmin) {
+                document.getElementById('welcomeText').textContent = `Welcome, ${currentAdmin}`;
+            }
+
+            // Notification Badge Logic
+            const updateNotificationBadge = () => {
+                const requests = Auth.getResetRequests();
+                const auditNotifs = Auth.getAuditNotifications ? Auth.getAuditNotifications() : [];
+
+                const pendingRequestsCount = requests.filter(r => r.status === 'pending').length;
+                const pendingAuditsCount = auditNotifs.filter(n => n.status === 'pending').length;
+                const totalPending = pendingRequestsCount + pendingAuditsCount;
+
+                const notifIcon = document.querySelector('.notification-icon');
+                if (notifIcon) {
+                    let badge = document.getElementById('notifBadge');
+                    if (totalPending > 0) {
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.id = 'notifBadge';
+                            badge.style.position = 'absolute';
+                            badge.style.top = '-5px';
+                            badge.style.right = '-5px';
+                            badge.style.backgroundColor = '#ef4444';
+                            badge.style.color = 'white';
+                            badge.style.borderRadius = '50%';
+                            badge.style.padding = '2px 6px';
+                            badge.style.fontSize = '0.7rem';
+                            badge.style.fontWeight = 'bold';
+                            notifIcon.appendChild(badge);
+                        }
+                        badge.textContent = totalPending;
+                        badge.style.display = 'block';
+                    } else if (badge) {
+                        badge.style.display = 'none';
+                    }
+                }
+            };
+
+            updateNotificationBadge();
+
+            // Message Badge Logic
+            const updateMessageBadge = () => {
+                let currentU = sessionStorage.getItem('currentAdmin');
+                if (!currentU) return;
+                const msgIcon = document.querySelector('.message-icon');
+                if (msgIcon && Auth.getUnreadMessageCount) {
+                    const unreadCount = Auth.getUnreadMessageCount(currentU);
+                    let badge = document.getElementById('msgBadge');
+                    if (unreadCount > 0) {
+                        if (!badge) {
+                            badge = document.createElement('span');
+                            badge.id = 'msgBadge';
+                            badge.style.position = 'absolute';
+                            badge.style.top = '-5px';
+                            badge.style.right = '-5px';
+                            badge.style.backgroundColor = '#ef4444';
+                            badge.style.color = 'white';
+                            badge.style.borderRadius = '50%';
+                            badge.style.padding = '2px 6px';
+                            badge.style.fontSize = '0.7rem';
+                            badge.style.fontWeight = 'bold';
+                            msgIcon.appendChild(badge);
+                        }
+                        badge.textContent = unreadCount;
+                        badge.style.display = 'block';
+                    } else if (badge) {
+                        badge.style.display = 'none';
+                    }
+                }
+            };
+            updateMessageBadge();
+            setInterval(updateMessageBadge, 5000);
+
+            // Handle Logout
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                Auth.logout();
+            });
+
+            // Toggle Admin List Logic
+            const toggleAdminsBtn = document.getElementById('toggleAdminsBtn');
+            const adminUserList = document.getElementById('adminUserList');
+            let isAdminsVisible = false;
+
+            toggleAdminsBtn.addEventListener('click', () => {
+                isAdminsVisible = !isAdminsVisible;
+                if (isAdminsVisible) {
+                    adminUserList.style.display = 'flex';
+                    toggleAdminsBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye-off"><path d="M10.733 5.076a10.744 10.744 0 0 1 11.205 6.575 1 1 0 0 1 0 .696 10.747 10.747 0 0 1-1.444 2.49M14.084 14.158a3 3 0 0 1-4.242-4.242M17.479 17.499a10.75 10.75 0 0 1-15.417-5.151 1 1 0 0 1 0-.696 10.75 10.75 0 0 1 4.446-5.143M2 2l20 20"/></svg>';
+                } else {
+                    adminUserList.style.display = 'none';
+                    toggleAdminsBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-eye"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"/><circle cx="12" cy="12" r="3"/></svg>';
+                }
+            });
+
+            // Load Admin User Details
+            if (adminUserList) {
+                const admins = Auth.getAdmins();
+                if (admins.length === 0) {
+                    adminUserList.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem;">No admins found.</p>';
+                } else {
+                    admins.forEach(admin => {
+                        const item = document.createElement('div');
+                        item.style.border = '1px solid #e2e8f0';
+                        item.style.borderRadius = '6px';
+                        item.style.padding = '15px';
+                        item.style.backgroundColor = '#f8fafc';
+                        item.style.display = 'flex';
+                        item.style.justifyContent = 'space-between';
+                        item.style.alignItems = 'center';
+
+                        const idSpan = document.createElement('div');
+                        idSpan.innerHTML = `<strong>Admin ID:</strong> <span style="color: black;">${admin.userId}</span>`;
+
+                        const emailSpan = document.createElement('div');
+                        emailSpan.innerHTML = `<strong>Email:</strong> <span style="color: black;">${admin.email || 'N/A'}</span>`;
+
+                        item.appendChild(idSpan);
+                        item.appendChild(emailSpan);
+                        adminUserList.appendChild(item);
+                    });
+                }
+            }
+
+            // ---- EXPORT / IMPORT LOGIC ----
+            const exportDataBtn = document.getElementById('exportDataBtn');
+            const importDataBtn = document.getElementById('importDataBtn');
+            const importFileInput = document.getElementById('importFileInput');
+
+            if (exportDataBtn) {
+                exportDataBtn.addEventListener('click', () => {
+                    const keys = Auth.getAllStorageKeys();
+                    const exportObj = {};
+
+                    keys.forEach(key => {
+                        const data = localStorage.getItem(key);
+                        if (data) {
+                            try {
+                                exportObj[key] = JSON.parse(data);
+                            } catch (e) {
+                                console.error(`Failed to parse ${key} during export`);
+                            }
+                        }
+                    });
+
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj));
+                    const downloadAnchorNode = document.createElement('a');
+                    downloadAnchorNode.setAttribute("href", dataStr);
+                    downloadAnchorNode.setAttribute("download", "medibyte_data_backup.json");
+                    document.body.appendChild(downloadAnchorNode); // required for firefox
+                    downloadAnchorNode.click();
+                    downloadAnchorNode.remove();
+                });
+            }
+
+            if (importDataBtn && importFileInput) {
+                importDataBtn.addEventListener('click', () => {
+                    importFileInput.click();
+                });
+
+                importFileInput.addEventListener('change', (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        try {
+                            const contents = e.target.result;
+                            const importedData = JSON.parse(contents);
+
+                            // Validate it looks somewhat correct
+                            const knownKeys = Auth.getAllStorageKeys();
+                            let importedCount = 0;
+
+                            for (const key in importedData) {
+                                if (knownKeys.includes(key)) {
+                                    localStorage.setItem(key, JSON.stringify(importedData[key]));
+                                    importedCount++;
+                                }
+                            }
+
+                            if (importedCount > 0) {
+                                alert(`Successfully imported data! The page will now reload to apply the changes.`);
+                                location.reload();
+                            } else {
+                                alert("No valid application data found in the selected file.");
+                            }
+
+                        } catch (err) {
+                            console.error("Failed to parse imported file", err);
+                            alert("Error parsing the file. Please ensure it is a valid JSON backup file.");
+                        }
+
+                        // Reset file input so same file can be selected again
+                        importFileInput.value = '';
+                    };
+                    reader.readAsText(file);
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

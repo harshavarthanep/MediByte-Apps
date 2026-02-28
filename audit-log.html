@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIBYTE TECH - Audit Log</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .filter-container {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 25px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            color: #333333;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            align-items: flex-end;
+            gap: 20px;
+        }
+
+        .filter-col {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .filter-col-full {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        .filter-col label {
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .filter-col select,
+        .filter-col input {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            background-color: #f9f9f9;
+            width: 100%;
+        }
+
+        .filter-col select {
+            appearance: menulist;
+        }
+
+        /* The Chart ID column needs a specific layout to accommodate the Get button */
+        .chart-id-col {
+            display: flex;
+            flex-direction: row;
+            /* Input and button side-by-side */
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-id-col input {
+            flex: 1;
+        }
+
+        .btn-get {
+            background-color: #22c55e;
+            /* Green color */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            height: 40px;
+            /* Match input height */
+        }
+
+        .btn-get:hover {
+            background-color: #16a34a;
+        }
+
+        .top-nav {
+            padding: 20px 40px;
+            width: 100%;
+        }
+
+        .btn-back {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .btn-back:hover {
+            color: #38bdf8;
+        }
+
+        /* Responsive layout */
+        @media (max-width: 768px) {
+            .filter-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body style="background-color: #0d121e;"> <!-- Matching the HCC dark navy background -->
+    <div class="app-layout">
+        <!-- Minimal Navigation -->
+        <div class="top-nav">
+            <a href="hcc.html" class="btn-back">← Back to HCC</a>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="app-content" style="padding-top: 10px;">
+
+            <div class="page-header">
+                <h1>AUDIT LOG</h1>
+            </div>
+
+            <div class="filter-container">
+                <!-- Column 1: Project Name -->
+                <div class="filter-col">
+                    <label>Project Name</label>
+                    <select id="filterProjectName" style="background-color: #e5e7eb;"></select>
+                </div>
+
+                <!-- Column 2: Sub Project Name -->
+                <div class="filter-col">
+                    <label>Sub Project Name</label>
+                    <select id="filterSubProjectName" style="background-color: #e5e7eb;"></select>
+                </div>
+
+                <!-- Column 3: From Date -->
+                <div class="filter-col">
+                    <label>From Date</label>
+                    <input type="date" id="filterFromDate" style="background-color: #e5e7eb;">
+                </div>
+
+                <!-- Column 4: To Date -->
+                <div class="filter-col">
+                    <label>To Date</label>
+                    <input type="date" id="filterToDate" style="background-color: #e5e7eb;">
+                </div>
+
+                <!-- Column 5: Chart ID & Get Button -->
+                <div class="filter-col-full">
+                    <label>Chart ID</label>
+                    <div class="chart-id-col">
+                        <input type="text" id="searchChartId" placeholder="Enter Chart ID"
+                            style="background-color: #ffffff;">
+                        <!-- Active green GET button -->
+                        <button class="btn-get" id="getBtn">Get</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Details Display (Hidden by default) -->
+            <div id="userDetailsSection" class="filter-container"
+                style="margin-top: 20px; display: none; padding: 15px 25px; background-color: #f8fafc; border-left: 4px solid #3b82f6;">
+                <div style="display: flex; gap: 15px; align-items: center;">
+                    <div
+                        style="background-color: #e0f2fe; color: #0369a1; padding: 8px 12px; border-radius: 4px; font-weight: 600;">
+                        Logged By
+                    </div>
+                    <div style="font-size: 1.05rem; color: #334155; font-weight: 600;" id="displayUserName"></div>
+                    <div style="font-size: 0.9rem; color: #64748b;">(User ID: <span id="displayUserId"></span>)</div>
+                </div>
+            </div>
+
+            <!-- AUDIT DETAILS AREA (Hidden by default until GET is clicked) -->
+            <div id="auditDetailsSection" class="filter-container"
+                style="margin-top: 20px; display: none; flex-direction: column; align-items: stretch;">
+
+                <h3 style="margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px;">Audit Details</h3>
+
+                <div style="display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <div class="filter-col">
+                        <label>Total DOS (Read-only)</label>
+                        <input type="text" id="detailTotalDos" readonly style="background-color: #e5e7eb;">
+                    </div>
+                    <div class="filter-col">
+                        <label>Entry Category (Read-only)</label>
+                        <input type="text" id="detailCategory" readonly style="background-color: #e5e7eb;">
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <!-- Editable Fields -->
+                    <div class="filter-col">
+                        <label>Total ICD <span style="color: #2563eb; font-size: 0.8rem;">(Editable)</span></label>
+                        <input type="number" id="detailTotalIcd">
+                    </div>
+                    <div class="filter-col">
+                        <label>Total Page <span style="color: #2563eb; font-size: 0.8rem;">(Editable)</span></label>
+                        <input type="number" id="detailTotalPage">
+                    </div>
+                </div>
+
+                <div
+                    style="margin-bottom: 20px; padding: 15px; background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px;">
+                    <div style="display: flex; gap: 20px; align-items: center;">
+                        <span style="font-weight: 600; font-size: 0.95rem;">Errors?</span>
+                        <label style="cursor: pointer;"><input type="radio" name="hasErrors" value="yes"> Yes</label>
+                        <label style="cursor: pointer;"><input type="radio" name="hasErrors" value="no" checked>
+                            No</label>
+                    </div>
+                </div>
+
+                <!-- Hidden Error Detail Section -->
+                <div id="errorSection" style="display: none; gap: 15px; margin-bottom: 25px; flex-direction: column;">
+                    <div class="filter-col-full">
+                        <label>Total No Of Errors</label>
+                        <input type="number" id="errTotalErrors" placeholder="Enter Total No Of Errors">
+                    </div>
+                    <div class="filter-col-full">
+                        <label>Errors</label>
+                        <select id="errType">
+                            <option value="">Select Error</option>
+                            <option value="critical">Critical Error</option>
+                            <option value="minor">Minor Error</option>
+                        </select>
+                    </div>
+                    <div class="filter-col-full">
+                        <label>Pages</label>
+                        <input type="text" id="errPages" placeholder="e.g. 1-3, 5">
+                    </div>
+                    <div class="filter-col-full">
+                        <label>Category</label>
+                        <select id="errCategory">
+                            <option value="">Select Category</option>
+                            <option value="coding">Coding</option>
+                            <option value="documentation">Documentation</option>
+                        </select>
+                    </div>
+                    <div class="filter-col-full">
+                        <label>Sub Category</label>
+                        <input type="text" id="errSubCategory" placeholder="Sub Category details">
+                    </div>
+                    <div class="filter-col-full">
+                        <label>Error Comment</label>
+                        <input type="text" id="errComment" placeholder="Enter Error Comment">
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; align-items: center; gap: 15px;">
+                    <span id="auditMessage" style="color: green; display: none; font-weight: 600;"></span>
+                    <button id="auditSubmitBtn"
+                        style="background-color: #facc15; border: 1px solid #eab308; color: #1f2937; padding: 10px 30px; border-radius: 4px; font-weight: 600; cursor: pointer;">Submit
+                        Audit</button>
+                </div>
+
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script>
+        Auth.checkAuth('user');
+
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // Function to populate dropdowns
+            const populateDropdown = (selectId, items, defaultText) => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = `<option value="">${defaultText}</option>`;
+                items.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item;
+                    option.textContent = item;
+                    select.appendChild(option);
+                });
+            };
+
+            // Load data from Storage
+            populateDropdown('filterProjectName', Auth.getProjects(), 'Select Project');
+            populateDropdown('filterSubProjectName', Auth.getSubProjects(), 'Select Sub Project');
+
+            const getBtn = document.getElementById('getBtn');
+            const searchChartId = document.getElementById('searchChartId');
+            const auditDetailsSection = document.getElementById('auditDetailsSection');
+            const userDetailsSection = document.getElementById('userDetailsSection');
+            const errorSection = document.getElementById('errorSection');
+
+            // Radio toggles
+            const radioYes = document.querySelector('input[name="hasErrors"][value="yes"]');
+            const radioNo = document.querySelector('input[name="hasErrors"][value="no"]');
+
+            radioYes.addEventListener('change', () => {
+                if (radioYes.checked) errorSection.style.display = 'flex';
+            });
+            radioNo.addEventListener('change', () => {
+                if (radioNo.checked) errorSection.style.display = 'none';
+            });
+
+            let currentLog = null;
+
+            getBtn.addEventListener('click', () => {
+                const chartId = searchChartId.value.trim();
+                if (!chartId) {
+                    alert('Please enter a Chart ID');
+                    return;
+                }
+
+                const logs = Auth.getEntryLogs();
+                const log = logs.find(l => l.chartId === chartId);
+
+                if (log) {
+                    currentLog = log;
+
+                    // Display User Details
+                    document.getElementById('displayUserName').textContent = log.userName || log.userId || 'Unknown User';
+                    document.getElementById('displayUserId').textContent = log.userId || 'N/A';
+                    userDetailsSection.style.display = 'block';
+
+                    // Populate Header Filters
+                    if (log.projectName) document.getElementById('filterProjectName').value = log.projectName;
+                    if (log.subProjectName) document.getElementById('filterSubProjectName').value = log.subProjectName;
+
+                    if (log.timestamp) {
+                        try {
+                            const d = new Date(log.timestamp);
+                            if (!isNaN(d.getTime())) {
+                                const formatted = d.toISOString().split('T')[0];
+                                document.getElementById('filterFromDate').value = formatted;
+                                document.getElementById('filterToDate').value = formatted;
+                            }
+                        } catch (e) { }
+                    }
+
+                    // Populate Details
+                    document.getElementById('detailTotalDos').value = log.totalDos || '';
+                    document.getElementById('detailCategory').value = log.category || '';
+
+                    // Editable fields
+                    document.getElementById('detailTotalIcd').value = log.totalIcd || '';
+                    document.getElementById('detailTotalPage').value = log.totalPage || '';
+
+                    // Reset logic
+                    radioNo.checked = true;
+                    errorSection.style.display = 'none';
+                    document.getElementById('errTotalErrors').value = '';
+                    document.getElementById('errType').value = '';
+                    document.getElementById('errPages').value = '';
+                    document.getElementById('errCategory').value = '';
+                    document.getElementById('errSubCategory').value = '';
+                    document.getElementById('errComment').value = '';
+
+                    // Show section
+                    auditDetailsSection.style.display = 'flex';
+                } else {
+                    alert('Chart ID not found in Entry Logs.');
+                    userDetailsSection.style.display = 'none';
+                    auditDetailsSection.style.display = 'none';
+                    currentLog = null;
+                }
+            });
+
+            document.getElementById('auditSubmitBtn').addEventListener('click', () => {
+                if (!currentLog) return;
+
+                const hasErrors = radioYes.checked;
+                const auditData = {
+                    totalIcd: document.getElementById('detailTotalIcd').value,
+                    totalPage: document.getElementById('detailTotalPage').value,
+                    auditStatus: 'Audited',
+                    auditTimestamp: new Date().toISOString(),
+                    hasErrors: hasErrors,
+                    errorDetails: hasErrors ? {
+                        totalErrors: document.getElementById('errTotalErrors').value,
+                        type: document.getElementById('errType').value,
+                        pages: document.getElementById('errPages').value,
+                        category: document.getElementById('errCategory').value,
+                        subCategory: document.getElementById('errSubCategory').value,
+                        comment: document.getElementById('errComment').value
+                    } : null
+                };
+
+                const response = Auth.updateEntryLog(currentLog.chartId, auditData);
+
+                if (response.success) {
+                    if (hasErrors) {
+                        Auth.addAuditNotification(currentLog.chartId, currentLog.userId || 'Unknown', auditData.auditTimestamp);
+                    }
+                    const msg = document.getElementById('auditMessage');
+                    msg.textContent = 'Audit Submitted Successfully!';
+                    msg.style.display = 'inline';
+                    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+                } else {
+                    alert('Error saving audit data.');
+                }
+            });
+
+        });
+    </script>
+</body>
+
+</html>

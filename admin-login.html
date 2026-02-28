@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIBYTE TECH - Admin Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1 class="brand brand-contrast">MEDIBYTE TECH</h1>
+            <p>Admin Portal - Please explicitly log in with Admin credentials.</p>
+        </div>
+
+        <div id="loginMessage" class="message"></div>
+
+        <form id="adminLoginForm">
+            <div class="form-group">
+                <label for="adminId">Admin User ID</label>
+                <input type="text" id="adminId" placeholder="Enter your Admin User ID" required autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label for="adminPassword">Admin Password</label>
+                <input type="password" id="adminPassword" placeholder="Enter your password" required
+                    autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn">Login as Admin</button>
+        </form>
+
+        <div class="auth-links">
+            <a href="admin-signup.html">Sign Up (Admin)</a>
+            <a href="index.html">Back to User Login</a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script src="admin-login.js"></script>
+</body>
+
+</html>

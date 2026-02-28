@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIBYTE TECH - Quality Report</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            color: #ffffff;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .report-container {
+            background: #ffffff;
+            border-radius: 8px;
+            padding: 30px;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            color: #333333;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            text-align: center;
+        }
+
+        .metric-card {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .metric-title {
+            font-size: 1rem;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .quality-card {
+            background-color: #e0f2fe;
+            border-color: #bae6fd;
+        }
+
+        .quality-card .metric-title,
+        .quality-card .metric-value {
+            color: #0369a1;
+        }
+
+        .top-nav {
+            padding: 20px 40px;
+            width: 100%;
+        }
+
+        .btn-back {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .btn-back:hover {
+            color: #38bdf8;
+        }
+
+        .formula-hint {
+            grid-column: 1 / -1;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-top: 15px;
+            font-style: italic;
+        }
+
+        /* Responsive layout */
+        @media (max-width: 768px) {
+            .report-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .report-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body style="background-color: #0d121e;"> <!-- Matching the HCC dark navy background -->
+    <div class="app-layout">
+        <!-- Minimal Navigation -->
+        <div class="top-nav">
+            <a href="hcc.html" class="btn-back">← Back to HCC</a>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="app-content" style="padding-top: 10px;">
+
+            <div class="page-header">
+                <h1>QUALITY REPORT</h1>
+            </div>
+
+            <!-- Date Filter Section -->
+            <div
+                style="background: white; border-radius: 8px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); display: flex; align-items: flex-end; gap: 15px; flex-wrap: wrap;">
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label for="fromDate" style="font-size: 0.85rem; font-weight: 600; color: #475569;">From
+                        Date</label>
+                    <input type="date" id="fromDate"
+                        style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; color: #333;">
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label for="toDate" style="font-size: 0.85rem; font-weight: 600; color: #475569;">To Date</label>
+                    <input type="date" id="toDate"
+                        style="padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; color: #333;">
+                </div>
+                <button id="applyFilterBtn"
+                    style="background-color: #38bdf8; color: #0f172a; font-weight: 600; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; transition: background 0.2s;">Apply
+                    Filter</button>
+                <button id="clearFilterBtn"
+                    style="background-color: #e2e8f0; color: #475569; font-weight: 600; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; transition: background 0.2s;">Clear</button>
+            </div>
+
+            <div class="report-container">
+                <div class="metric-card">
+                    <span class="metric-title">Total Audit</span>
+                    <span class="metric-value" id="totalAuditVal">0</span>
+                </div>
+
+                <div class="metric-card">
+                    <span class="metric-title">Total ICD</span>
+                    <span class="metric-value" id="totalIcdVal">0</span>
+                </div>
+
+                <div class="metric-card">
+                    <span class="metric-title">Total Errors</span>
+                    <span class="metric-value" id="totalErrorsVal">0</span>
+                </div>
+
+                <div class="metric-card quality-card" id="qualityCard">
+                    <span class="metric-title" id="qualityTitle">Quality</span>
+                    <span class="metric-value" id="qualityVal">0%</span>
+                </div>
+
+                <div class="formula-hint">
+                    *Quality (%) = 100 - Total Error / Total ICD * 100
+                </div>
+            </div>
+
+            <!-- User Breakdown Section -->
+            <div
+                style="margin-top: 40px; background: white; border-radius: 8px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); color: #333;">
+                <h3
+                    style="margin-bottom: 20px; font-size: 1.25rem; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+                    Quality Details by User</h3>
+
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="background-color: #f8fafc;">
+                                <th
+                                    style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #475569;">
+                                    User Details</th>
+                                <th
+                                    style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #475569;">
+                                    Total Audit</th>
+                                <th
+                                    style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #475569;">
+                                    Total ICD</th>
+                                <th
+                                    style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #475569;">
+                                    Total Errors</th>
+                                <th
+                                    style="padding: 12px 15px; border-bottom: 1px solid #e2e8f0; font-weight: 600; color: #475569;">
+                                    Quality</th>
+                            </tr>
+                        </thead>
+                        <tbody id="userBreakdownTableBody">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- User Error Review Section -->
+            <div id="coderReviewSection"
+                style="display: none; margin-top: 40px; background: white; border-radius: 8px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); color: #333; margin-bottom: 40px;">
+                <h3
+                    style="margin-bottom: 20px; font-size: 1.25rem; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+                    Review Error Comments</h3>
+
+                <div id="errorReviewList" style="display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Error items injected via JS -->
+                </div>
+
+                <div
+                    style="display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                    <span id="reviewMessage" style="color: green; display: none; font-weight: 600;"></span>
+                    <button id="saveReviewBtn"
+                        style="background-color: #3b82f6; border: none; color: white; padding: 10px 30px; border-radius: 4px; font-weight: 600; cursor: pointer;">Save
+                        Reviews</button>
+                </div>
+            </div>
+
+            <!-- Admin Appeals Section -->
+            <div id="adminAppealsSection"
+                style="display: none; margin-top: 40px; background: white; border-radius: 8px; padding: 25px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); color: #333; margin-bottom: 40px;">
+                <h3
+                    style="margin-bottom: 20px; font-size: 1.25rem; color: #1e293b; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+                    Admin Actions: Appealed Errors</h3>
+
+                <div id="adminAppealsList" style="display: flex; flex-direction: column; gap: 20px;">
+                    <!-- Appealed items injected via JS -->
+                </div>
+
+                <div
+                    style="display: flex; justify-content: flex-end; align-items: center; gap: 15px; margin-top: 30px; border-top: 1px solid #e2e8f0; padding-top: 20px;">
+                    <span id="adminReviewMessage" style="color: green; display: none; font-weight: 600;"></span>
+                    <button id="saveAdminReviewBtn"
+                        style="background-color: #3b82f6; border: none; color: white; padding: 10px 30px; border-radius: 4px; font-weight: 600; cursor: pointer;">Resolve
+                        Appeals</button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script>
+        Auth.checkAuth('both');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentRole = sessionStorage.getItem('userRole');
+            if (currentRole === 'admin') {
+                const backBtn = document.querySelector('.btn-back');
+                if (backBtn) {
+                    backBtn.href = 'admin.html';
+                    backBtn.textContent = '← Back to Admin';
+                }
+            }
+            const logs = Auth.getEntryLogs();
+            const currentUser = sessionStorage.getItem('currentUser');
+
+            // We consider 'Audited' logs for the quality report
+            let auditedLogs = logs.filter(log => log.auditStatus === 'Audited');
+
+            // If it's a standard user, limit the reports to ONLY their own logs
+            if (currentRole !== 'admin') {
+                auditedLogs = auditedLogs.filter(log => log.userId === currentUser);
+            }
+
+            // Define function to calculate and render the entire page
+            function renderQualityReport(logsToRender) {
+                let totalAuditCount = logsToRender.length;
+                let totalIcdSum = 0;
+                let totalErrorsCount = 0;
+
+                logsToRender.forEach(log => {
+                    const icd = parseInt(log.totalIcd) || 0;
+                    totalIcdSum += icd;
+
+                    if (log.hasErrors === true || log.hasErrors === 'true') {
+                        totalErrorsCount++;
+                    }
+                });
+
+                let qualityPercentage = 100;
+                if (totalIcdSum > 0) {
+                    qualityPercentage = 100 - ((totalErrorsCount / totalIcdSum) * 100);
+                } else if (totalErrorsCount > 0 && totalIcdSum === 0) {
+                    qualityPercentage = 0;
+                }
+                qualityPercentage = parseFloat(qualityPercentage.toFixed(2));
+
+                document.getElementById('totalAuditVal').textContent = totalAuditCount;
+                document.getElementById('totalIcdVal').textContent = totalIcdSum;
+                document.getElementById('totalErrorsVal').textContent = totalErrorsCount;
+
+                const qualityValEl = document.getElementById('qualityVal');
+                const qualityTitleEl = document.getElementById('qualityTitle');
+                const qualityCardEl = document.getElementById('qualityCard');
+
+                qualityValEl.textContent = qualityPercentage + '%';
+
+                // Color coding logic
+                qualityCardEl.style.backgroundColor = '';
+                qualityCardEl.style.borderColor = '';
+                qualityTitleEl.style.color = '';
+                qualityValEl.style.color = '';
+
+                if (qualityPercentage >= 98) {
+                    // Green
+                    qualityCardEl.style.backgroundColor = '#dcfce7';
+                    qualityCardEl.style.borderColor = '#bbf7d0';
+                    qualityTitleEl.style.color = '#166534';
+                    qualityValEl.style.color = '#166534';
+                } else if (qualityPercentage >= 95) {
+                    // Yellow
+                    qualityCardEl.style.backgroundColor = '#fef9c3';
+                    qualityCardEl.style.borderColor = '#fef08a';
+                    qualityTitleEl.style.color = '#854d0e';
+                    qualityValEl.style.color = '#854d0e';
+                } else {
+                    // Red (Below 95)
+                    qualityCardEl.style.backgroundColor = '#fee2e2';
+                    qualityCardEl.style.borderColor = '#fecaca';
+                    qualityTitleEl.style.color = '#991b1b';
+                    qualityValEl.style.color = '#991b1b';
+                }
+
+                const userStats = {};
+                logsToRender.forEach(log => {
+                    const uid = log.userId || 'unknown';
+                    const uname = log.userName || 'Unknown User';
+
+                    if (!userStats[uid]) {
+                        userStats[uid] = { name: uname, id: uid, totalAudit: 0, totalIcd: 0, totalErrors: 0 };
+                    }
+                    userStats[uid].totalAudit++;
+                    userStats[uid].totalIcd += (parseInt(log.totalIcd) || 0);
+
+                    if (log.hasErrors === true || log.hasErrors === 'true') {
+                        userStats[uid].totalErrors++;
+                    }
+                });
+
+                const tbody = document.getElementById('userBreakdownTableBody');
+                tbody.innerHTML = '';
+                const userIds = Object.keys(userStats);
+
+                if (userIds.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 20px; color: #64748b;">No audit data found for this period.</td></tr>';
+                } else {
+                    userIds.forEach(uid => {
+                        const st = userStats[uid];
+                        let uQuality = 100;
+                        if (st.totalIcd > 0) {
+                            uQuality = 100 - ((st.totalErrors / st.totalIcd) * 100);
+                        } else if (st.totalErrors > 0 && st.totalIcd === 0) {
+                            uQuality = 0;
+                        }
+                        uQuality = parseFloat(uQuality.toFixed(2));
+
+                        const tr = document.createElement('tr');
+                        tr.style.borderBottom = '1px solid #eee';
+                        tr.innerHTML = `
+                            <td style="padding: 12px 15px;">
+                                <div style="font-weight: 600; color: #0f172a;">${st.name}</div>
+                                <div style="font-size: 0.8rem; color: #64748b;">ID: ${st.id}</div>
+                            </td>
+                            <td style="padding: 12px 15px;">${st.totalAudit}</td>
+                            <td style="padding: 12px 15px;">${st.totalIcd}</td>
+                            <td style="padding: 12px 15px;">${st.totalErrors}</td>
+                            <td style="padding: 12px 15px; font-weight: 600; color: ${uQuality >= 98 ? '#16a34a' : (uQuality >= 95 ? '#ca8a04' : '#dc2626')};">${uQuality}%</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            }
+
+            // Initial render
+            renderQualityReport(auditedLogs);
+
+            // Filter logic
+            const applyFilterBtn = document.getElementById('applyFilterBtn');
+            const clearFilterBtn = document.getElementById('clearFilterBtn');
+            const fromDateInput = document.getElementById('fromDate');
+            const toDateInput = document.getElementById('toDate');
+
+            // Strip time for clean Date comparisons
+            function stripTime(date) {
+                return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            }
+
+            applyFilterBtn.addEventListener('click', () => {
+                const fromVal = fromDateInput.value;
+                const toVal = toDateInput.value;
+
+                if (!fromVal && !toVal) {
+                    renderQualityReport(auditedLogs);
+                    return;
+                }
+
+                const filteredLogs = auditedLogs.filter(log => {
+                    // Assuming log.timestamp is the date the chart was submitted, or log.auditTimestamp
+                    // Determine which timestamp to use based on what's available
+                    const logTimeStr = log.timestamp || log.auditTimestamp;
+                    if (!logTimeStr) return false;
+
+                    const logDate = stripTime(new Date(logTimeStr));
+
+                    if (fromVal && toVal) {
+                        const fromD = stripTime(new Date(fromVal));
+                        const toD = stripTime(new Date(toVal));
+                        return logDate >= fromD && logDate <= toD;
+                    } else if (fromVal) {
+                        const fromD = stripTime(new Date(fromVal));
+                        return logDate >= fromD;
+                    } else if (toVal) {
+                        const toD = stripTime(new Date(toVal));
+                        return logDate <= toD;
+                    }
+                    return true;
+                });
+
+                renderQualityReport(filteredLogs);
+            });
+
+            clearFilterBtn.addEventListener('click', () => {
+                fromDateInput.value = '';
+                toDateInput.value = '';
+                renderQualityReport(auditedLogs);
+            });
+
+            // Error Review Logic
+            if (currentRole === 'admin') {
+                document.getElementById('adminAppealsSection').style.display = 'block';
+
+                const adminAppealsList = document.getElementById('adminAppealsList');
+                adminAppealsList.innerHTML = '';
+
+                const appealedLogs = auditedLogs.filter(log =>
+                    (log.hasErrors === true || log.hasErrors === 'true') &&
+                    log.reviewDetails && log.reviewDetails.status === 'Disagree' &&
+                    !log.adminResolution
+                );
+
+                if (appealedLogs.length === 0) {
+                    adminAppealsList.innerHTML = '<div style="color: #64748b; text-align: center; padding: 20px;">No appealed errors to review.</div>';
+                    document.getElementById('saveAdminReviewBtn').style.display = 'none';
+                } else {
+                    appealedLogs.forEach(log => {
+                        const ed = log.errorDetails || {};
+                        const rev = log.reviewDetails || {};
+
+                        const itemDiv = document.createElement('div');
+                        itemDiv.style.border = '1px solid #e2e8f0';
+                        itemDiv.style.borderRadius = '6px';
+                        itemDiv.style.padding = '15px';
+                        itemDiv.style.backgroundColor = '#f8fafc';
+
+                        itemDiv.innerHTML = `
+                            <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px;">
+                                <div>
+                                    <strong style="color: #0f172a;">Chart ID:</strong> ${log.chartId || 'N/A'} 
+                                    <span style="margin: 0 10px; color: #cbd5e1;">|</span>
+                                    <strong style="color: #0f172a;">Coder:</strong> ${log.userName || log.userId || 'Unknown'}
+                                </div>
+                                <div style="font-size: 0.85rem; color: #64748b;">
+                                    Project: ${log.projectName || 'N/A'}
+                                </div>
+                            </div>
+
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                                <div style="background: white; border: 1px solid #f1f5f9; padding: 10px; border-radius: 4px;">
+                                    <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px;">Error Logged</div>
+                                    <div style="color: #333; font-size: 0.9rem;"><strong>Details:</strong> ${ed.type || 'N/A'}, ${ed.pages || 'N/A'}, ${ed.category || 'N/A'}</div>
+                                    <div style="color: #334155; font-style: italic; margin-top: 5px;">"${ed.comment || 'No comment'}"</div>
+                                </div>
+                                <div style="background: white; border: 1px solid #fecaca; padding: 10px; border-radius: 4px;">
+                                    <div style="font-size: 0.85rem; color: #991b1b; margin-bottom: 4px;">Coder Appeal (Disagree)</div>
+                                    <div style="color: #991b1b; font-style: italic;">"${rev.comment || 'No explanation provided'}"</div>
+                                </div>
+                            </div>
+
+                            <div style="background: white; padding: 15px; border-radius: 4px; border: 1px solid #e2e8f0;">
+                                <div style="font-weight: 600; color: #0f172a; font-size: 0.95rem; margin-bottom: 10px;">Admin Decision</div>
+                                <div style="display: flex; gap: 20px;">
+                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; color: #166534; font-weight: 500;">
+                                        <input type="radio" name="adminStatus_${log.chartId}" value="Agree"> 
+                                        Agree with Coder (Revert Error)
+                                    </label>
+                                    <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; color: #991b1b; font-weight: 500;">
+                                        <input type="radio" name="adminStatus_${log.chartId}" value="Disagree"> 
+                                        Disagree with Coder (Keep Error)
+                                    </label>
+                                </div>
+                            </div>
+                        `;
+                        adminAppealsList.appendChild(itemDiv);
+                    });
+
+                    // Handle Admin Save
+                    document.getElementById('saveAdminReviewBtn').addEventListener('click', () => {
+                        let successCount = 0;
+                        appealedLogs.forEach(log => {
+                            const statusRadio = document.querySelector(`input[name="adminStatus_${log.chartId}"]:checked`);
+                            const statusVal = statusRadio ? statusRadio.value : '';
+
+                            if (statusVal) {
+                                const updateData = { adminResolution: statusVal };
+                                if (statusVal === 'Agree') {
+                                    // Admin agrees it is NOT an error! Revert it.
+                                    updateData.hasErrors = false;
+                                }
+                                const response = Auth.updateEntryLog(log.chartId, updateData);
+                                if (response.success) successCount++;
+                            }
+                        });
+
+                        const msg = document.getElementById('adminReviewMessage');
+                        msg.textContent = `Successfully resolved ${successCount} appeal(s). Updating Quality...`;
+                        msg.style.display = 'inline';
+                        setTimeout(() => { location.reload(); }, 1500);
+                    });
+                }
+
+            } else {
+                // User Review Logic
+                document.getElementById('coderReviewSection').style.display = 'block';
+                const errorReviewList = document.getElementById('errorReviewList');
+                errorReviewList.innerHTML = '';
+
+                // Filter down to only audited logs that have errors
+                const errorLogs = auditedLogs.filter(log => log.hasErrors === true || log.hasErrors === 'true');
+
+                if (errorLogs.length === 0) {
+                    errorReviewList.innerHTML = '<div style="color: #64748b; text-align: center; padding: 20px;">No errors available to review.</div>';
+                    document.getElementById('saveReviewBtn').style.display = 'none';
+                } else {
+                    errorLogs.forEach((log, index) => {
+                        const ed = log.errorDetails || {};
+                        const review = log.reviewDetails || { status: '', comment: '' };
+
+                        const itemDiv = document.createElement('div');
+                        itemDiv.style.border = '1px solid #e2e8f0';
+                        itemDiv.style.borderRadius = '6px';
+                        itemDiv.style.padding = '15px';
+                        itemDiv.style.backgroundColor = '#f8fafc';
+
+                        itemDiv.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 15px;">
+                            <div>
+                                <strong style="color: #0f172a;">Chart ID:</strong> ${log.chartId || 'N/A'} 
+                                <span style="margin: 0 10px; color: #cbd5e1;">|</span>
+                                <strong style="color: #0f172a;">User:</strong> ${log.userName || log.userId || 'Unknown'}
+                            </div>
+                            <div style="font-size: 0.85rem; color: #64748b;">
+                                Project: ${log.projectName || 'N/A'} - ${log.subProjectName || 'N/A'}
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div>
+                                <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px;">Error Details</div>
+                                <div style="color: #333;"><strong>Type:</strong> ${ed.type || 'N/A'}</div>
+                                <div style="color: #333;"><strong>Pages:</strong> ${ed.pages || 'N/A'}</div>
+                                <div style="color: #333;"><strong>Cat:</strong> ${ed.category || 'N/A'} - ${ed.subCategory || 'N/A'}</div>
+                            </div>
+                            <div style="background: white; border: 1px solid #f1f5f9; padding: 10px; border-radius: 4px;">
+                                <div style="font-size: 0.85rem; color: #64748b; margin-bottom: 4px;">Auditor Comment</div>
+                                <div style="color: #334155; font-style: italic;">"${ed.comment || 'No comment provided'}"</div>
+                            </div>
+                        </div>
+
+                        <div style="background: white; padding: 15px; border-radius: 4px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 15px;">
+                            <div style="font-weight: 600; color: #0f172a; font-size: 0.95rem;">Review Error</div>
+                            
+                            <div style="display: flex; gap: 20px;">
+                                <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                    <input type="radio" name="reviewStatus_${log.chartId}" value="Agree" ${review.status === 'Agree' ? 'checked' : ''}> 
+                                    Agree
+                                </label>
+                                <label style="cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                                    <input type="radio" name="reviewStatus_${log.chartId}" value="Disagree" ${review.status === 'Disagree' ? 'checked' : ''}> 
+                                    Disagree
+                                </label>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column;">
+                                <label style="font-size: 0.85rem; color: #475569; margin-bottom: 6px;">Review Comment</label>
+                                <input type="text" id="reviewComment_${log.chartId}" value="${review.comment || ''}" placeholder="Enter your comments here..." style="padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; width: 100%; font-size: 0.9rem;">
+                            </div>
+                        </div>
+                            `;
+                        errorReviewList.appendChild(itemDiv);
+                    });
+
+                    // Handle Save
+                    document.getElementById('saveReviewBtn').addEventListener('click', () => {
+                        let successCount = 0;
+
+                        errorLogs.forEach(log => {
+                            const statusRadio = document.querySelector(`input[name="reviewStatus_${log.chartId}"]:checked`);
+                            const commentInput = document.getElementById(`reviewComment_${log.chartId}`);
+
+                            const statusVal = statusRadio ? statusRadio.value : '';
+                            const commentVal = commentInput ? commentInput.value : '';
+
+                            // Only save if something was actually entered
+                            if (statusVal || commentVal) {
+                                const updatedReview = {
+                                    status: statusVal,
+                                    comment: commentVal,
+                                    reviewedAt: new Date().toISOString()
+                                };
+
+                                const response = Auth.updateEntryLog(log.chartId, { reviewDetails: updatedReview });
+                                if (response.success) successCount++;
+                            }
+                        });
+
+                        const msg = document.getElementById('reviewMessage');
+                        msg.textContent = `Successfully saved reviews for ${successCount} record(s).`;
+                        msg.style.display = 'inline';
+                        setTimeout(() => { msg.style.display = 'none'; }, 4000);
+                    });
+                }
+            } // end else for user role
+        });
+    </script>
+</body>
+
+</html>

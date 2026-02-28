@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIBYTE TECH - Sub Project Names</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .btn-back {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .btn-back:hover {
+            color: var(--primary-color);
+        }
+
+        .log-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        .item-list {
+            margin-top: 30px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background-color: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+
+        @media (max-width: 768px) {
+            .log-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <nav class="app-navbar">
+            <div class="brand brand-contrast">MEDIBYTE TECH</div>
+            <div class="nav-links"><button id="logoutBtn" class="btn-logout">Logout</button></div>
+        </nav>
+        <main class="app-content">
+            <div class="page-header"><a href="admin.html" class="btn-back">← Back to Dashboard</a></div>
+            <div class="log-container">
+                <div class="dashboard-card">
+                    <h2>Add Sub Project Name</h2>
+                    <div id="addMessage" class="message"></div>
+                    <form id="addForm">
+                        <div class="form-group">
+                            <label for="newItemName">Sub Project Name</label>
+                            <input type="text" id="newItemName" placeholder="Enter new Sub Project Name" required>
+                        </div>
+                        <button type="submit" class="btn">Add Sub Project</button>
+                    </form>
+                </div>
+                <div class="dashboard-card">
+                    <h2>Existing Sub Projects</h2>
+                    <div id="itemList" class="item-list"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="auth.js"></script>
+    <script>
+        Auth.checkAuth('admin');
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('logoutBtn').addEventListener('click', () => Auth.logout());
+            const addForm = document.getElementById('addForm');
+            const itemListContainer = document.getElementById('itemList');
+            const renderItems = () => {
+                const items = Auth.getSubProjects();
+                itemListContainer.innerHTML = '';
+                if (items.length === 0) { itemListContainer.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.9rem;">No sub projects found.</p>'; return; }
+                items.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'list-item';
+
+                    const textSpan = document.createElement('span');
+                    textSpan.textContent = item;
+
+                    const actionDiv = document.createElement('div');
+
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.style.marginRight = '10px';
+                    editBtn.className = 'btn';
+                    editBtn.style.padding = '5px 10px';
+                    editBtn.style.fontSize = '0.8rem';
+                    editBtn.onclick = () => {
+                        const newName = prompt('Edit Sub Project Name:', item);
+                        if (newName && newName.trim() !== '') {
+                            const res = Auth.updateSubProject(item, newName.trim());
+                            if (res.success) renderItems();
+                            else alert(res.message);
+                        }
+                    };
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.textContent = 'Delete';
+                    deleteBtn.className = 'btn';
+                    deleteBtn.style.backgroundColor = '#ef4444';
+                    deleteBtn.style.padding = '5px 10px';
+                    deleteBtn.style.fontSize = '0.8rem';
+                    deleteBtn.onclick = () => {
+                        if (confirm(`Are you sure you want to delete ${item}?`)) {
+                            Auth.deleteSubProject(item);
+                            renderItems();
+                        }
+                    };
+
+                    actionDiv.appendChild(editBtn);
+                    actionDiv.appendChild(deleteBtn);
+
+                    div.appendChild(textSpan);
+                    div.appendChild(actionDiv);
+
+                    itemListContainer.appendChild(div);
+                });
+            };
+            renderItems();
+            if (addForm) {
+                addForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    const newItemName = document.getElementById('newItemName').value.trim();
+                    if (!newItemName) { Auth.showMessage('addMessage', 'Please fill in the field.', 'error'); return; }
+                    const response = Auth.addSubProject(newItemName);
+                    if (response.success) { Auth.showMessage('addMessage', `Added successfully!`, 'success'); addForm.reset(); renderItems(); }
+                    else { Auth.showMessage('addMessage', response.message, 'error'); }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIBYTE TECH - User Log</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .btn-back {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .btn-back:hover {
+            color: var(--primary-color);
+        }
+
+        .user-log-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        @media (max-width: 768px) {
+            .user-log-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Navigation Bar -->
+        <nav class="app-navbar">
+            <div class="brand brand-contrast">MEDIBYTE TECH</div>
+            <div class="nav-links">
+                <button id="logoutBtn" class="btn-logout">Logout</button>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="app-content">
+            <div class="page-header">
+                <a href="admin.html" class="btn-back">← Back to Dashboard</a>
+            </div>
+
+            <div class="user-log-container">
+                <!-- Create User Column -->
+                <div class="dashboard-card">
+                    <h2>Create Standard User</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.9rem;">
+                        Note: This is the ONLY way standard users can be created for the login page.
+                    </p>
+
+                    <div id="createUserMessage" class="message"></div>
+
+                    <form id="createUserForm">
+                        <div class="form-group">
+                            <label for="newUserId">User ID</label>
+                            <input type="text" id="newUserId" placeholder="Enter new User ID" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newFullName">Full Name</label>
+                            <input type="text" id="newFullName" placeholder="Enter full name" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newEmail">Email</label>
+                            <input type="email" id="newEmail" placeholder="Enter email address" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newDob">Date of Birth</label>
+                            <input type="date" id="newDob" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newDoj">Date of Joining</label>
+                            <input type="date" id="newDoj" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newReportingTo">Reporting To</label>
+                            <input type="text" id="newReportingTo" placeholder="Enter reporting manager" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="newUserPassword">Password</label>
+                            <input type="text" id="newUserPassword" placeholder="Enter new password" required>
+                        </div>
+
+                        <button type="submit" class="btn">Create User</button>
+                    </form>
+                </div>
+
+                <!-- Existing Users Column -->
+                <div class="dashboard-card">
+                    <h2>Existing Users</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                        A list of all users currently registered in the system.
+                    </p>
+
+                    <div id="userList" class="user-list">
+                        <!-- User items will be rendered here via JS -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+        <div class="modal-content dashboard-card"
+            style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: var(--bg-surface); padding: 30px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin:0;">Edit User Details</h2>
+                <button type="button" id="closeEditModal"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-primary);">&times;</button>
+            </div>
+            <div id="editUserMessage" class="message"></div>
+            <form id="editUserForm">
+                <input type="hidden" id="editUserIdOriginal">
+
+                <div class="form-group">
+                    <label for="editUserId">User ID</label>
+                    <input type="text" id="editUserId" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editFullName">Full Name</label>
+                    <input type="text" id="editFullName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editEmail">Email</label>
+                    <input type="email" id="editEmail" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editDob">Date of Birth</label>
+                    <input type="date" id="editDob" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editDoj">Date of Joining</label>
+                    <input type="date" id="editDoj" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editReportingTo">Reporting To</label>
+                    <input type="text" id="editReportingTo" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="editUserPassword">Password</label>
+                    <input type="text" id="editUserPassword" required>
+                </div>
+
+                <button type="submit" class="btn" style="width: 100%;">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script src="user-log.js"></script>
+</body>
+
+</html>

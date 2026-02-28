@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIBYTE TECH - Entry Log</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .claim-card {
+            background: #ffffff;
+            border-radius: 4px;
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            margin: 40px auto;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            color: #333333;
+        }
+
+        .claim-header {
+            background-color: #1e3a8a;
+            /* Navy blue header */
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+
+        .claim-close {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .claim-body {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 40px;
+        }
+
+        .form-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .form-row label {
+            flex: 0 0 140px;
+            font-size: 0.9rem;
+            color: #555;
+            font-family: Arial, sans-serif;
+        }
+
+        .form-row input[type="text"],
+        .form-row select {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 2px;
+            font-size: 0.9rem;
+            background-color: #f9f9f9;
+        }
+
+        .form-row select {
+            appearance: menulist;
+        }
+
+        .radio-group-container {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            margin-bottom: 25px;
+        }
+
+        .radio-group-label {
+            font-size: 0.9rem;
+            color: #555;
+            margin-right: 15px;
+            font-family: Arial, sans-serif;
+        }
+
+        .radio-group {
+            border: 1px solid #ccc;
+            padding: 8px 15px;
+            display: flex;
+            gap: 15px;
+            background-color: #f9f9f9;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+            color: #333;
+        }
+
+        .radio-group input {
+            margin-right: 5px;
+        }
+
+        .action-buttons {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .claim-btn {
+            padding: 6px 20px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            color: #333;
+            cursor: pointer;
+            font-size: 0.9rem;
+            border-radius: 2px;
+        }
+
+        .claim-btn:hover {
+            background-color: #e0e0e0;
+        }
+
+        .top-nav {
+            padding: 20px 40px;
+            width: 100%;
+        }
+
+        .btn-back {
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            font-size: 0.9rem;
+            transition: var(--transition);
+        }
+
+        .btn-back:hover {
+            color: #38bdf8;
+        }
+
+        /* Responsive layout */
+        @media (max-width: 768px) {
+            .claim-body {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Minimal Navigation -->
+        <div class="top-nav">
+            <a href="hcc.html" class="btn-back">← Back to HCC</a>
+        </div>
+
+        <!-- Main Content Area based on image reference -->
+        <main class="app-content" style="padding-top: 0;">
+
+            <div class="claim-card">
+                <div class="claim-header">
+                    <span>New Claim Details</span>
+                    <span class="claim-close">×</span>
+                </div>
+
+                <div class="claim-body">
+                    <!-- Left Column -->
+                    <div class="left-col">
+                        <div class="form-row">
+                            <label>Project Name</label>
+                            <select id="projectName">
+                                <option value="">Select Project</option>
+                            </select>
+                        </div>
+
+                        <!-- Based on user prompt: Subproject name -->
+                        <div class="form-row">
+                            <label>Sub project name</label>
+                            <select id="subProjectName">
+                                <option value="">Select Sub Project</option>
+                            </select>
+                        </div>
+
+                        <!-- Based on user prompt: Chart id -->
+                        <div class="form-row">
+                            <label>Chart ID</label>
+                            <input type="text" id="chartId" required>
+                        </div>
+
+                        <!-- User Prompt: Total Page & Total DOS -->
+                        <div class="form-row">
+                            <label>Total Page</label>
+                            <input type="number" id="totalPage">
+                        </div>
+                        <div class="form-row">
+                            <label>Total DOS</label>
+                            <input type="number" id="totalDos">
+                        </div>
+
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="right-col">
+                        <div style="height: 48px;"></div>
+                        <!-- User prompt: Total ICD -->
+                        <div class="form-row">
+                            <label>Total ICD</label>
+                            <input type="number" id="totalIcd">
+                        </div>
+
+                        <!-- User prompt: Client log in -> assuming ClientName from image context -->
+                        <div class="form-row">
+                            <label>Client Login</label>
+                            <select id="clientLogin">
+                                <option value="">Select Client</option>
+                            </select>
+                        </div>
+
+                        <!-- User prompt: Category -->
+                        <div class="form-row">
+                            <label>Category</label>
+                            <select id="category">
+                                <option value=""></option>
+                                <option value="completed">Completed</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                        </div>
+
+                        <!-- Changed to Comments with 500 char space -->
+                        <div class="form-row" style="align-items: flex-start;">
+                            <label style="margin-top: 8px;">Comments</label>
+                            <textarea id="comments" maxlength="500" rows="5"
+                                style="flex: 1; padding: 6px 8px; border: 1px solid #ccc; border-radius: 2px; font-size: 0.9rem; background-color: #f9f9f9; resize: vertical;"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Buttons at bottom -->
+                    <div class="action-buttons">
+                        <span id="submitMessage"
+                            style="color: green; display: none; margin-right: 15px; align-self: center;"></span>
+                        <button id="submitBtn" class="claim-btn btn-submit"
+                            style="background-color: #facc15; border-color: #eab308; color: #1f2937; font-weight: 600;">Submit</button>
+                        <button id="clearBtn" class="claim-btn">Clear</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script>
+        Auth.checkAuth('user');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Function to populate dropdowns
+            const populateDropdown = (selectId, items, defaultText) => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = `<option value="">${defaultText}</option>`;
+                items.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item;
+                    option.textContent = item;
+                    select.appendChild(option);
+                });
+            };
+
+            // Load data from Storage
+            populateDropdown('projectName', Auth.getProjects(), 'Select Project');
+            populateDropdown('subProjectName', Auth.getSubProjects(), 'Select Sub Project');
+            populateDropdown('clientLogin', Auth.getClients(), 'Select Client');
+
+            // Handle Submit
+            document.getElementById('submitBtn').addEventListener('click', () => {
+                const chartId = document.getElementById('chartId').value.trim();
+                if (!chartId) {
+                    alert('Chart ID is required.');
+                    return;
+                }
+
+                const currentUser = sessionStorage.getItem('currentUser') || 'Unknown User';
+                const users = Auth.getUsers();
+                const userObj = users.find(u => u.userId === currentUser);
+                const userName = userObj ? userObj.fullname : currentUser;
+
+                const logData = {
+                    projectName: document.getElementById('projectName').value,
+                    subProjectName: document.getElementById('subProjectName').value,
+                    chartId: chartId,
+                    totalPage: document.getElementById('totalPage').value,
+                    totalDos: document.getElementById('totalDos').value,
+                    totalIcd: document.getElementById('totalIcd').value,
+                    clientLogin: document.getElementById('clientLogin').value,
+                    category: document.getElementById('category').value,
+                    comments: document.getElementById('comments').value,
+                    timestamp: new Date().toISOString(),
+                    userId: currentUser,
+                    userName: userName
+                };
+
+                const response = Auth.addEntryLog(logData);
+
+                if (response.success) {
+                    const msg = document.getElementById('submitMessage');
+                    msg.textContent = 'Submitted Successfully!';
+                    msg.style.display = 'block';
+                    msg.style.color = 'green';
+
+                    setTimeout(() => { msg.style.display = 'none'; }, 3000);
+
+                    // Clear form
+                    document.getElementById('chartId').value = '';
+                    document.getElementById('totalPage').value = '';
+                    document.getElementById('totalDos').value = '';
+                    document.getElementById('totalIcd').value = '';
+                    document.getElementById('comments').value = '';
+                    document.getElementById('projectName').value = '';
+                    document.getElementById('subProjectName').value = '';
+                    document.getElementById('clientLogin').value = '';
+                    document.getElementById('category').value = '';
+                } else {
+                    alert(response.message);
+                }
+            });
+
+            // Handle Clear
+            document.getElementById('clearBtn').addEventListener('click', () => {
+                document.getElementById('chartId').value = '';
+                document.getElementById('totalPage').value = '';
+                document.getElementById('totalDos').value = '';
+                document.getElementById('totalIcd').value = '';
+                document.getElementById('comments').value = '';
+                document.getElementById('projectName').value = '';
+                document.getElementById('subProjectName').value = '';
+                document.getElementById('clientLogin').value = '';
+                document.getElementById('category').value = '';
+            });
+        });
+    </script>
+</body>
+
+</html>

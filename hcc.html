@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIBYTE TECH - HCC</title>
+    <!-- We don't link the global style.css because we want a complete white background and custom styles according to user specifications -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d121e;
+            /* Dark navy from image */
+            color: #ffffff;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Home link positioned between left-top and left-center */
+        .home-link {
+            position: absolute;
+            top: 25%;
+            left: 40px;
+            color: #38bdf8;
+            /* Light blue contrast */
+            text-decoration: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            border: 2px solid #38bdf8;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .home-link:hover {
+            background-color: #38bdf8;
+            color: #0d121e;
+        }
+
+        /* Top Center Products Area */
+        .page-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 60px;
+        }
+
+        .products-btn {
+            background-color: transparent;
+            border: none;
+            color: #ffffff;
+            /* Contrast against dark background */
+            font-size: 2rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: inherit;
+            transition: color 0.3s;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .products-btn:hover {
+            color: #38bdf8;
+        }
+
+        .dropdown-list {
+            list-style: none;
+            display: none;
+            /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            animation: fadeInDown 0.3s ease forwards;
+        }
+
+        .dropdown-list.active {
+            display: flex;
+        }
+
+        .dropdown-item {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: #cbd5e1;
+            /* Light slate for contrast */
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Home Link: Placed left side between top and center -->
+    <a href="main.html" class="home-link">Home</a>
+
+    <div class="page-content">
+        <!-- Products heading / button -->
+        <button id="productsBtn" class="products-btn">Products</button>
+
+        <!-- Options List -->
+        <ul id="optionsList" class="dropdown-list">
+            <li class="dropdown-item"><a href="entry-log.html"
+                    style="color: inherit; text-decoration: none; width: 100%; display: block; text-align: center;">ENTRY
+                    LOG</a></li>
+            <li class="dropdown-item"><a href="audit-log.html"
+                    style="color: inherit; text-decoration: none; width: 100%; display: block; text-align: center;">AUDIT
+                    LOG</a></li>
+            <li class="dropdown-item"><a href="quality-report.html"
+                    style="color: inherit; text-decoration: none; width: 100%; display: block; text-align: center;">QUALITY
+                    REPORT</a></li>
+            <li class="dropdown-item"><a href="chart-search.html"
+                    style="color: inherit; text-decoration: none; width: 100%; display: block; text-align: center;">CHART
+                    SEARCH</a></li>
+            <li class="dropdown-item"><a href="my-production.html"
+                    style="color: inherit; text-decoration: none; width: 100%; display: block; text-align: center;">MY
+                    PRODUCTION</a></li>
+        </ul>
+    </div>
+
+    <script src="auth.js"></script>
+    <script>
+        // Check standard user authentication
+        Auth.checkAuth('user');
+
+        // Products Toggle Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            const productsBtn = document.getElementById('productsBtn');
+            const optionsList = document.getElementById('optionsList');
+
+            productsBtn.addEventListener('click', () => {
+                optionsList.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+
+</html>

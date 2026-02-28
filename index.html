@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIBYTE TECH - User Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h1 class="brand">MEDIBYTE TECH</h1>
+            <p>Welcome back! Please login to your account.</p>
+        </div>
+
+        <div id="loginMessage" class="message"></div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="userId">User ID</label>
+                <input type="text" id="userId" placeholder="Enter your User ID" required autocomplete="username">
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required
+                    autocomplete="current-password">
+            </div>
+
+            <button type="submit" class="btn">Login</button>
+        </form>
+
+        <div class="auth-links">
+            <a href="#" id="forgotPasswordBtn" style="color: var(--text-secondary); margin-bottom: 10px;">Forgot
+                Password?</a>
+            <span>Are you an admin?</span>
+            <a href="admin-login.html">Admin Login</a>
+        </div>
+    </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgotPasswordModal"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 1000;">
+        <div class="auth-container" style="animation: none;">
+            <div class="auth-header">
+                <h2>Reset Password</h2>
+                <p>Enter your User ID to request a password reset.</p>
+            </div>
+            <div id="resetMessage" class="message"></div>
+            <form id="resetRequestForm">
+                <div class="form-group">
+                    <label for="resetUserId">User ID</label>
+                    <input type="text" id="resetUserId" placeholder="Enter your User ID" required>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn" style="flex: 1;">Request Reset</button>
+                    <button type="button" id="closeForgotModalBtn" class="btn"
+                        style="flex: 1; background-color: #64748b;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Set New Password Modal (Shown if request is approved) -->
+    <div id="setNewPasswordModal"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 1000;">
+        <div class="auth-container" style="animation: none;">
+            <div class="auth-header">
+                <h2>Set New Password</h2>
+                <p>Your reset request was approved. Set a new password.</p>
+            </div>
+            <div id="newPasswordMessage" class="message"></div>
+            <form id="setNewPasswordForm">
+                <input type="hidden" id="approvedUserId">
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" placeholder="Enter new password" required>
+                </div>
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="submit" class="btn" style="flex: 1;">Save Password</button>
+                    <button type="button" id="closeSetPasswordModalBtn" class="btn"
+                        style="flex: 1; background-color: #64748b;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script src="login.js"></script>
+</body>
+
+</html>

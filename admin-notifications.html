@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDIBYTE TECH - Admin Notifications</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div class="app-layout">
+        <!-- Navigation Bar -->
+        <nav class="app-navbar">
+            <div class="brand brand-contrast">MEDIBYTE TECH</div>
+            <div class="nav-links" style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <a href="admin.html" class="btn-logout" style="text-decoration: none;">Back to Dashboard</a>
+                    <span id="welcomeText">Welcome, Admin</span>
+                    <button id="logoutBtn" class="btn-logout">Logout</button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content Area -->
+        <main class="app-content">
+            <div class="dashboard-card">
+                <h2>Notifications</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 20px;">
+                    View all recent system notifications and alerts.
+                </p>
+
+                <div id="notificationsList" style="display: flex; flex-direction: column; gap: 15px;">
+                    <!-- Dummy Notifications -->
+                    <div
+                        style="padding: 15px; background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <h4 style="margin-bottom: 5px; color: var(--text-primary);">New User Registration</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">A new user has just registered.
+                            Please review their details.</p>
+                        <span style="font-size: 0.8rem; color: #64748b; margin-top: 8px; display: block;">Just
+                            now</span>
+                    </div>
+
+                    <div
+                        style="padding: 15px; background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <h4 style="margin-bottom: 5px; color: var(--text-primary);">System Update</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">System maintenance is scheduled for
+                            tonight at 2:00 AM.</p>
+                        <span style="font-size: 0.8rem; color: #64748b; margin-top: 8px; display: block;">2 hours
+                            ago</span>
+                    </div>
+
+                    <div
+                        style="padding: 15px; background: rgba(15, 23, 42, 0.5); border: 1px solid var(--border-color); border-radius: 8px;">
+                        <h4 style="margin-bottom: 5px; color: var(--text-primary);">Audit Log Exported</h4>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">The daily audit log has been
+                            successfully exported to CSV.</p>
+                        <span
+                            style="font-size: 0.8rem; color: #64748b; margin-top: 8px; display: block;">Yesterday</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="auth.js"></script>
+    <script>
+        Auth.checkAuth('admin');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const currentAdmin = sessionStorage.getItem('currentAdmin');
+            if (currentAdmin) {
+                document.getElementById('welcomeText').textContent = `Welcome, ${currentAdmin}`;
+            }
+
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                Auth.logout();
+            });
+
+            const notificationsList = document.getElementById('notificationsList');
+
+            const loadNotifications = () => {
+                const requests = Auth.getResetRequests();
+                const auditNotifs = Auth.getAuditNotifications ? Auth.getAuditNotifications() : [];
+
+                const pendingRequests = requests.filter(r => r.status === 'pending');
+                const pendingAudits = auditNotifs.filter(n => n.status === 'pending');
+
+                // Clear out previously added dynamic requests
+                document.querySelectorAll('.dynamic-request').forEach(el => el.remove());
+                const noDynElement = document.getElementById('noDynamicReq');
+                if (noDynElement) noDynElement.remove();
+
+                if (pendingRequests.length === 0 && pendingAudits.length === 0) {
+                    const el = document.createElement('div');
+                    el.id = 'noDynamicReq';
+                    el.className = 'dynamic-request';
+                    el.style.padding = '15px';
+                    el.style.background = 'rgba(15, 23, 42, 0.5)';
+                    el.style.border = '1px solid var(--border-color)';
+                    el.style.borderRadius = '8px';
+                    el.innerHTML = '<p style="color: var(--text-secondary); text-align: center; margin: 0;">No pending requests or alerts.</p>';
+                    notificationsList.prepend(el);
+                    return;
+                }
+
+                // Add dynamic reset requests
+                pendingRequests.slice().reverse().forEach(req => {
+                    const el = document.createElement('div');
+                    el.className = 'dynamic-request';
+                    el.style.padding = '15px';
+                    el.style.background = 'rgba(30, 58, 138, 0.4)'; // Slight blue tint to highlight it's a real priority request
+                    el.style.border = '1px solid #3b82f6';
+                    el.style.borderRadius = '8px';
+
+                    const timeAgo = new Date(req.timestamp).toLocaleString();
+
+                    el.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div>
+                                <h4 style="margin-bottom: 5px; color: #60a5fa;">ACTION REQUIRED: Password Reset</h4>
+                                <p style="color: var(--text-secondary); font-size: 0.95rem;">User ID: <strong style="color:white;">${req.userId}</strong> has requested a password reset.</p>
+                                <span style="font-size: 0.8rem; color: #94a3b8; margin-top: 8px; display: block;">${timeAgo}</span>
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn accept-btn" data-id="${req.id}" style="padding: 6px 12px; font-size: 0.85rem; background-color: #10b981;">Accept</button>
+                                <button class="btn reject-btn" data-id="${req.id}" style="padding: 6px 12px; font-size: 0.85rem; background-color: #ef4444;">Reject</button>
+                            </div>
+                        </div>
+                    `;
+                    notificationsList.prepend(el);
+                });
+
+                // Add dynamic audit error notifications
+                pendingAudits.slice().reverse().forEach(notif => {
+                    const el = document.createElement('div');
+                    el.className = 'dynamic-request';
+                    el.style.padding = '15px';
+                    el.style.background = 'rgba(153, 27, 27, 0.4)'; // Slight red tint for errors
+                    el.style.border = '1px solid #ef4444';
+                    el.style.borderLeft = '4px solid #ef4444';
+                    el.style.borderRadius = '8px';
+                    el.style.marginBottom = '10px';
+
+                    let timeAgo = 'Unknown';
+                    try {
+                        timeAgo = new Date(notif.timestamp).toLocaleString();
+                    } catch (e) { }
+
+                    el.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h4 style="margin-bottom: 5px; color: #f87171;">AUDIT ERROR REPORTED</h4>
+                                <p style="color: var(--text-secondary); font-size: 0.95rem;">Auditor <strong>${notif.userId}</strong> reported an error on Chart ID: <strong style="color:white;">${notif.chartId}</strong>.</p>
+                                <span style="font-size: 0.8rem; color: #94a3b8; margin-top: 8px; display: block;">${timeAgo}</span>
+                            </div>
+                            <button class="btn review-audit-btn" data-id="${notif.id}" style="padding: 6px 15px; font-size: 0.85rem; background-color: #facc15; color: black; font-weight: 600;">Mark Reviewed</button>
+                        </div>
+                    `;
+                    notificationsList.prepend(el);
+                });
+
+                // Re-bind listeners for newly added dynamic elements
+                document.querySelectorAll('.accept-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = e.target.getAttribute('data-id');
+                        Auth.updateResetRequestStatus(id, 'approved');
+                        loadNotifications(); // Reload list
+                    });
+                });
+                document.querySelectorAll('.reject-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = e.target.getAttribute('data-id');
+                        Auth.updateResetRequestStatus(id, 'rejected');
+                        loadNotifications(); // Reload list
+                    });
+                });
+                document.querySelectorAll('.review-audit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const id = e.target.getAttribute('data-id');
+                        if (Auth.updateAuditNotificationStatus) {
+                            Auth.updateAuditNotificationStatus(id, 'reviewed');
+                            loadNotifications(); // Reload list
+                        }
+                    });
+                });
+            };
+
+            loadNotifications();
+        });
+    </script>
+</body>
+
+</html>
