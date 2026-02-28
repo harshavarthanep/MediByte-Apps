@@ -8,15 +8,6 @@
  */
 
 // 1. ADD YOUR FIREBASE CONFIGURATION HERE (You'll get this in Step 2 below)
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
     apiKey: "AIzaSyAxjET5Rl1C2Dif8euzLl_NHL-RCQxOMIk",
     authDomain: "medibyte-apps.firebaseapp.com",
@@ -26,11 +17,6 @@
     appId: "1:283326599085:web:c0a6c725663e308b7b1b24",
     measurementId: "G-0Y9VJ08B7B"
   };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
 
 // 2. Dynamically load Firebase so you don't have to edit your HTML files
 const loadFirebaseAndSync = async () => {
@@ -550,6 +536,7 @@ const Auth = {
         ];
     }
 };
+
 
 
 
