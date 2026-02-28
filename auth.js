@@ -3,10 +3,11 @@
  * Utility functions for managing users and admins in localStorage.
  */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+/** * auth.js 
+ * Updated with Dynamic Firebase Loading (No HTML edits required)
+ */
 
-// 1. ADD YOUR FIREBASE CONFIGURATION HERE (Get this from Firebase Console)
+// 1. ADD YOUR FIREBASE CONFIGURATION HERE (You'll get this in Step 2 below)
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -16,54 +17,64 @@ const firebaseConfig = {
   appId: "YOUR_APP_ID"
 };
 
-// Initialize Firebase & Firestore securely
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// Secure Online Sync Layer: Syncs Firebase data to localStorage
-const syncWithFirebase = async () => {
-  const collections = ['users', 'admins', 'resetRequests', 'auditNotifications', 'messages', 'chatGroups', 'clients', 'projects'];
-  
-  collections.forEach(collectionName => {
-    // Listen for real-time secure updates from Firebase
-    onSnapshot(doc(db, "medibyteData", collectionName), (docSnapshot) => {
-      if (docSnapshot.exists()) {
-        localStorage.setItem(collectionName, JSON.stringify(docSnapshot.data().items || []));
-      }
-    });
+// 2. Dynamically load Firebase so you don't have to edit your HTML files
+const loadFirebaseAndSync = async () => {
+  const loadScript = (src) => new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = src;
+    script.onload = resolve;
+    script.onerror = reject;
+    document.head.appendChild(script);
   });
-};
 
-// Start synchronization
-syncWithFirebase();
+  try {
+    // Load Firebase Compat libraries (works without type="module")
+    await loadScript("https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js");
+    await loadScript("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js");
 
-// Override localStorage.setItem to also push to Firebase (Keeping your other code unmodified)
-const originalSetItem = localStorage.setItem;
-localStorage.setItem = function(key, value) {
-  // Save locally for immediate UI response (synchronous)
-  originalSetItem.apply(this, arguments);
-  
-  // Save to Secure Firebase Database online (asynchronous)
-  const allowedKeys = ['users', 'admins', 'resetRequests', 'auditNotifications', 'messages', 'chatGroups', 'clients', 'projects'];
-  if (allowedKeys.includes(key)) {
-    try {
-      const parsedData = JSON.parse(value);
-      setDoc(doc(db, "medibyteData", key), { items: parsedData }, { merge: true });
-    } catch (e) {
-      console.error("Firebase Sync Error for confidential data: ", e);
-    }
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const collections = ['users', 'admins', 'resetRequests', 'auditNotifications', 'messages', 'chatGroups', 'clients', 'projects'];
+
+    // Listen for secure real-time updates from Firebase
+    collections.forEach(collectionName => {
+      db.collection("medibyteData").doc(collectionName).onSnapshot((docSnapshot) => {
+        if (docSnapshot.exists) {
+          localStorage.setItem(collectionName, JSON.stringify(docSnapshot.data().items || []));
+        }
+      });
+    });
+
+    // Override localStorage.setItem to also push to Firebase
+    const originalSetItem = localStorage.setItem;
+    localStorage.setItem = function(key, value) {
+      originalSetItem.apply(this, arguments); // Save locally instantly
+      
+      if (collections.includes(key)) {
+        try {
+          db.collection("medibyteData").doc(key).set({ items: JSON.parse(value) }, { merge: true });
+        } catch (e) {
+          console.error("Firebase Sync Error: ", e);
+        }
+      }
+    };
+  } catch (error) {
+    console.error("Failed to load Firebase dynamically:", error);
   }
 };
 
-// Ensure default storage exists if Firebase hasn't loaded yet
-if (!localStorage.getItem('users')) localStorage.setItem('users', JSON.stringify([]));
-if (!localStorage.getItem('admins')) localStorage.setItem('admins', JSON.stringify([]));
-if (!localStorage.getItem('resetRequests')) localStorage.setItem('resetRequests', JSON.stringify([]));
-if (!localStorage.getItem('auditNotifications')) localStorage.setItem('auditNotifications', JSON.stringify([]));
-if (!localStorage.getItem('messages')) localStorage.setItem('messages', JSON.stringify([]));
-if (!localStorage.getItem('chatGroups')) localStorage.setItem('chatGroups', JSON.stringify([]));
+// Start the loading and syncing process
+loadFirebaseAndSync();
 
-// The rest of your Auth object remains EXACTLY the same below this line
+// Ensure default storage exists immediately for your UI
+const defaultKeys = ['users', 'admins', 'resetRequests', 'auditNotifications', 'messages', 'chatGroups', 'clients', 'projects'];
+defaultKeys.forEach(key => {
+  if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify([]));
+});
+
+// --- THE REST OF YOUR Auth OBJECT REMAINS EXACTLY THE SAME BELOW THIS LINE ---
+
 
 const Auth = {
     // ---- USERS ----
@@ -524,4 +535,5 @@ const Auth = {
         ];
     }
 };
+
 
