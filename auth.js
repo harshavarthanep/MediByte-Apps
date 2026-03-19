@@ -1,14 +1,10 @@
 /**
  * auth.js
- * Utility functions for managing users and admins in localStorage.
+ * Master Authentication & Firebase Sync Layer
  */
 
-/** * auth.js 
- * Updated with Dynamic Firebase Loading (No HTML edits required)
- */
-
-// 1. ADD YOUR FIREBASE CONFIGURATION HERE (You'll get this in Step 2 below)
-  const firebaseConfig = {
+// --- FIREBASE CONFIGURATION ---
+const firebaseConfig = {
     apiKey: "AIzaSyAxjET5Rl1C2Dif8euzLl_NHL-RCQxOMIk",
     authDomain: "medibyte-apps.firebaseapp.com",
     projectId: "medibyte-apps",
@@ -16,67 +12,96 @@
     messagingSenderId: "283326599085",
     appId: "1:283326599085:web:c0a6c725663e308b7b1b24",
     measurementId: "G-0Y9VJ08B7B"
-  };
-
-// 2. Dynamically load Firebase so you don't have to edit your HTML files
-const loadFirebaseAndSync = async () => {
-  const loadScript = (src) => new Promise((resolve, reject) => {
-    const script = document.createElement('script');
-    script.src = src;
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.appendChild(script);
-  });
-
-  try {
-    // Load Firebase Compat libraries (works without type="module")
-    await loadScript("https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js");
-    await loadScript("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js");
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const collections = ['users', 'admins', 'resetRequests', 'auditNotifications', 'messages', 'chatGroups', 'clients', 'projects'];
-
-    // Listen for secure real-time updates from Firebase
-    collections.forEach(collectionName => {
-      db.collection("medibyteData").doc(collectionName).onSnapshot((docSnapshot) => {
-        if (docSnapshot.exists) {
-          localStorage.setItem(collectionName, JSON.stringify(docSnapshot.data().items || []));
-        }
-      });
-    });
-
-    // Override localStorage.setItem to also push to Firebase
-    const originalSetItem = localStorage.setItem;
-    localStorage.setItem = function(key, value) {
-      originalSetItem.apply(this, arguments); // Save locally instantly
-      
-      if (collections.includes(key)) {
-        try {
-          db.collection("medibyteData").doc(key).set({ items: JSON.parse(value) }, { merge: true });
-        } catch (e) {
-          console.error("Firebase Sync Error: ", e);
-        }
-      }
-    };
-  } catch (error) {
-    console.error("Failed to load Firebase dynamically:", error);
-  }
 };
 
-// Start the loading and syncing process
-loadFirebaseAndSync();
+// Added the missing 'entryLogs' and 'subProjects'
+const ALL_COLLECTIONS = [
+    'users', 'admins', 'resetRequests', 'auditNotifications', 
+    'messages', 'chatGroups', 'clients', 'projects', 
+    'subProjects', 'entryLogs' 
+];
 
-// Ensure default storage exists immediately for your UI
-const defaultKeys = ['users', 'admins', 'resetRequests', 'auditNotifications', 'messages', 'chatGroups', 'clients', 'projects'];
-defaultKeys.forEach(key => {
-  if (!localStorage.getItem(key)) localStorage.setItem(key, JSON.stringify([]));
+// --- 1. SAFE LOCAL INITIALIZATION ---
+// We bypass the proxy during setup to prevent accidentally wiping cloud data
+const nativeSetItem = localStorage.setItem.bind(localStorage);
+ALL_COLLECTIONS.forEach(key => {
+    if (!localStorage.getItem(key)) {
+        nativeSetItem(key, JSON.stringify([]));
+    }
 });
 
+// --- 2. THE LOADING BLOCKER ---
+// Prevents users from using the app before cloud data syncs on a new device
+const overlay = document.createElement('div');
+overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:#0f172a;z-index:99999;display:flex;justify-content:center;align-items:center;color:white;font-family:Inter,sans-serif;transition:opacity 0.3s ease;';
+overlay.innerHTML = '<div style="text-align:center;"><div style="font-size:2rem;font-weight:bold;margin-bottom:10px;color:#38bdf8;">MEDIBYTE TECH</div><div>Connecting to Secure Cloud...</div></div>';
+document.documentElement.appendChild(overlay);
+
+// --- 3. DYNAMIC FIREBASE SYNC ---
+let isRemoteUpdate = false; // Magic flag to prevent data echo loops
+
+const loadFirebaseAndSync = async () => {
+    const loadScript = (src) => new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+
+    try {
+        await loadScript("https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js");
+        await loadScript("https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js");
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let loadedCount = 0;
+
+        ALL_COLLECTIONS.forEach(collectionName => {
+            // Listen for cloud changes
+            db.collection("medibyteData").doc(collectionName).onSnapshot((docSnapshot) => {
+                if (docSnapshot.exists) {
+                    isRemoteUpdate = true; // Tell the app this update came from the cloud
+                    nativeSetItem(collectionName, JSON.stringify(docSnapshot.data().items || []));
+                    isRemoteUpdate = false; // Reset flag
+                } else {
+                    // First time setup in Firebase: push default empty array up securely
+                    db.collection("medibyteData").doc(collectionName).set({ items: [] });
+                }
+
+                // Remove loading screen once all collections have synced
+                loadedCount++;
+                if (loadedCount >= ALL_COLLECTIONS.length) {
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.style.display = 'none', 300);
+                }
+            });
+        });
+
+        // Intercept all future localStorage.setItem calls made by your application
+        localStorage.setItem = function(key, value) {
+            nativeSetItem(key, value); // Save locally instantly for the UI
+
+            // If it's our data, AND the change didn't just come from Firebase, push it!
+            if (ALL_COLLECTIONS.includes(key) && !isRemoteUpdate) {
+                try {
+                    db.collection("medibyteData").doc(key).set({ items: JSON.parse(value) }, { merge: true });
+                } catch (e) {
+                    console.error("Firebase Push Error: ", e);
+                }
+            }
+        };
+
+    } catch (error) {
+        console.error("Failed to load Firebase dynamically:", error);
+        overlay.innerHTML = '<div style="text-align:center;color:#ef4444;">Failed to connect to cloud database.<br>Please refresh the page.</div>';
+    }
+};
+
+loadFirebaseAndSync();
+
 // --- THE REST OF YOUR Auth OBJECT REMAINS EXACTLY THE SAME BELOW THIS LINE ---
-
-
 const Auth = {
     // ---- USERS ----
     getUsers: function () {
