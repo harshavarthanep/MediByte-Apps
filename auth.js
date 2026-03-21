@@ -4,14 +4,23 @@
  */
 
 // --- FIREBASE CONFIGURATION ---
+// const firebaseConfig = {
+//     apiKey: "AIzaSyAxjET5Rl1C2Dif8euzLl_NHL-RCQxOMIk",
+//     authDomain: "medibyte-apps.firebaseapp.com",
+//     projectId: "medibyte-apps",
+//     storageBucket: "medibyte-apps.firebasestorage.app",
+//     messagingSenderId: "283326599085",
+//     appId: "1:283326599085:web:c0a6c725663e308b7b1b24",
+//     measurementId: "G-0Y9VJ08B7B"
+// };
+
 const firebaseConfig = {
-    apiKey: "AIzaSyAxjET5Rl1C2Dif8euzLl_NHL-RCQxOMIk",
-    authDomain: "medibyte-apps.firebaseapp.com",
-    projectId: "medibyte-apps",
-    storageBucket: "medibyte-apps.firebasestorage.app",
-    messagingSenderId: "283326599085",
-    appId: "1:283326599085:web:c0a6c725663e308b7b1b24",
-    measurementId: "G-0Y9VJ08B7B"
+  apiKey: "AIzaSyBlsZqJ8nhm1ip6xB4u3PyKFoduobPd06w",
+  authDomain: "medibyte-c2650.firebaseapp.com",
+  projectId: "medibyte-c2650",
+  storageBucket: "medibyte-c2650.firebasestorage.app",
+  messagingSenderId: "921474516593",
+  appId: "1:921474516593:web:8737aba1e0643b978d7dd0"
 };
 
 // Added the missing 'entryLogs' and 'subProjects'
